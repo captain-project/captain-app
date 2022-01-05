@@ -16,3 +16,7 @@ indent_style = space
 
 [*.md]
 trim_trailing_whitespace = false
+
+
+[*.py]
+indent_size = 4
