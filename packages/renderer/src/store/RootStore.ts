@@ -1,9 +1,19 @@
 import { makeObservable, observable, action } from "mobx";
+import SimulationStore from "./SimulationStore";
+import ResultsStore from "./ResultsStore";
+
+export interface Message {
+  type: string;
+  data: any;
+}
 
 export default class RootStore {
+  simulation = new SimulationStore(this);
+  results = new ResultsStore(this);
+
   socket: WebSocket | undefined = undefined;
   consoleOutput = "";
-  testImgUrl = "";
+  numInitSocketRetries = 0;
 
   constructor() {
     this.initSocket();
@@ -11,56 +21,52 @@ export default class RootStore {
     makeObservable(this, {
       send: action,
       consoleOutput: observable,
-      testImgUrl: observable,
     });
   }
 
-  private onOpen = () => {
-    console.log("open");
-    this.socket?.send(JSON.stringify({ type: "test", message: "Hello" }));
-  };
-
   onMessage = action((e: MessageEvent) => {
-    const result = JSON.parse(e.data);
+    const result = JSON.parse(e.data) as Message;
     console.log("Got message", result);
     this.consoleOutput += `\n${e.data.toString()}`;
-    if (result.type === "test-result") {
-      console.log("Test result!");
-      this.testImgUrl = result.data;
-    }
+
+    this.simulation.handleMessage(result);
+    this.results.handleMessage(result);
   });
 
-  private onError = (e: Event) => {
-    console.warn("Got error", e);
-  };
+  private onOpen = () => console.log("Socket open");
+
+  private onError = (e: Event) => console.warn("Got error", e);
 
   private onClose = (e: CloseEvent) => {
     console.warn(`Closing socket. Reason: '${e.reason}', code: ${e.code}`);
-    setTimeout(() => {
-      this.initSocket();
-    }, 1000);
+    const maxRetries = 10;
+
+    if (this.numInitSocketRetries < maxRetries) {
+      setTimeout(() => {
+        ++this.numInitSocketRetries;
+        this.initSocket();
+      }, 1000);
+    }
   };
 
   private initSocket() {
     if (this.socket && this.socket.readyState <= 1) {
       return;
     }
+
     try {
-      console.log("Create web socket...");
+      console.log("Creating web socket...");
       const socket = new WebSocket("ws://localhost:8000/ws");
 
       socket.onmessage = this.onMessage;
       socket.onerror = this.onError;
       socket.onopen = this.onOpen;
       socket.onclose = this.onClose;
+
       this.socket = socket;
     } catch (err: any) {
       console.error(`Error creating web socket: ${err}`);
     }
-  }
-
-  test() {
-    this.send("testpy");
   }
 
   send(type: string, data: object = {}) {

@@ -10,6 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 import plotting
+import captain_api
 
 html = """
 <!DOCTYPE html>
@@ -65,16 +66,24 @@ class WS(WebSocketEndpoint):
 
         msg_type = data["type"]
         print(f"Got message with type '{msg_type}':", data, flush=True)
-        if msg_type == "test":
-            await websocket.send_json({ 'type': 'result', 'data': data })
+
+        if msg_type == "sim:init":
+            sim_file = captain_api.init_simulated_system(**data["data"])
+            await websocket.send_json({ 'type': 'sim:init', 'data': sim_file })
+            print(flush=True)
             return
 
-        if msg_type == "testpy":
-            plotting.render_test_plot()
-            await websocket.send_json({ 'type': 'test-result', 'data': "http://localhost:8000/static/plot.svg" })
+        if msg_type == "sim:run":
+            def progress_callback(msg_type, data):
+                websocket.send_json({ 'type': msg_type, 'data': data })
+
+            captain_api.simulate_biodiv_env(progress_callback=progress_callback, **data["data"])
+            await websocket.send_json({ 'type': 'sim:run', 'data': "http://localhost:8000/static/" })
+            print(flush=True)
             return
 
         await websocket.send_json({ 'type': 'error', 'message': f"Type '{msg_type}' not recognized" })
+        print(flush=True)
         return
 
 routes = [
