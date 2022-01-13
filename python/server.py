@@ -8,9 +8,10 @@ from starlette.routing import Route, WebSocketRoute, Mount
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
-
-import plotting
+import asyncio
+from threading import Thread
 import captain_api
+
 
 html = """
 <!DOCTYPE html>
@@ -56,8 +57,22 @@ class Echo(WebSocketEndpoint):
     async def on_receive(self, websocket, data):
         await websocket.send_text(f"Message text was: {data}")
 
+
+def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
 class WS(WebSocketEndpoint):
     encoding = "json"
+
+    def __init__(self, scope, receive, send) -> None:
+        super().__init__(scope, receive, send)
+
+        loop = asyncio.new_event_loop()
+        t = Thread(target=start_background_loop, args=(loop,), daemon=True)
+        t.start()
+        self.bg_loop = loop
+
 
     async def on_receive(self, websocket: WebSocket, data: typing.Dict) -> None:
         if "type" not in data:
@@ -73,13 +88,43 @@ class WS(WebSocketEndpoint):
             print(flush=True)
             return
 
-        if msg_type == "sim:run":
-            def progress_callback(msg_type, data):
-                websocket.send_json({ 'type': msg_type, 'data': data })
 
-            captain_api.simulate_biodiv_env(progress_callback=progress_callback, **data["data"])
+        if msg_type == "sim:run":
+
+            progress_items = []
+            # job_id = data["data"]["id"]
+            # TODO: Use dates as job ids and save output to folder with job id name
+
+            async def progress_task():
+                finished = False
+                while True:
+                    await asyncio.sleep(0.001)
+                    while len(progress_items) > 0:
+                        progress_type, progress_data = progress_items.pop(0)
+                        print(f"Progress task have {len(progress_items) + 1} items, processing {progress_data['filename']}")
+                        await websocket.send_json({ "type": progress_type, "data": progress_data })
+                        if progress_type == "finished":
+                            finished = True
+                    if finished:
+                        break
+                print("progress task finished!")
+
+            async def captain_task():
+                for progress_type, progress_data in captain_api.simulate_biodiv_env(**data["data"]):
+                    print(progress_type, progress_data['filename'], flush=True)
+                    progress_items.append((progress_type, progress_data))
+                    await asyncio.sleep(0.001)
+                print("captain task finished!")
+
+            task1 = asyncio.create_task(progress_task())
+            task2 = asyncio.create_task(captain_task())
+
+            await task1
+            await task2
+
             await websocket.send_json({ 'type': 'sim:run', 'data': "http://localhost:8000/static/" })
             print(flush=True)
+
             return
 
         await websocket.send_json({ 'type': 'error', 'message': f"Type '{msg_type}' not recognized" })
