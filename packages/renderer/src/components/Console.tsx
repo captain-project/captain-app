@@ -11,7 +11,7 @@ export default observer(function Console() {
       <GridHeader label="Console" />
       <Box overflow="scroll" maxHeight="33vh" w="100%" fontSize="sm">
         <code>
-          <pre>{store.consoleOutput}</pre>
+          <pre>{store.activeResult?.consoleOutput}</pre>
         </code>
       </Box>
     </>

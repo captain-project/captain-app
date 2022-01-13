@@ -1,76 +1,46 @@
-import { makeObservable, observable, action } from "mobx";
-import SimulationStore from "./SimulationStore";
-import ResultsStore from "./ResultsStore";
-
-export interface Message {
-  type: string;
-  data: any;
-}
+import { makeObservable, observable, action, computed } from "mobx";
+import ResultStore from "./ResultStore";
+import Socket from "./Socket";
+import type { Message, MessageHandler } from "./Socket";
 
 export default class RootStore {
-  simulation = new SimulationStore(this);
-  results = new ResultsStore(this);
-
-  socket: WebSocket | undefined = undefined;
-  consoleOutput = "";
-  numInitSocketRetries = 0;
+  tabIndex = 0;
+  socket: Socket;
+  results: ResultStore[] = [new ResultStore(this, "Result 1")];
+  send: MessageHandler;
 
   constructor() {
-    this.initSocket();
+    this.socket = new Socket(
+      (message: Message) => this.activeResult?.handleMessage(message) // todo
+    );
+
+    this.send = this.socket.send;
 
     makeObservable(this, {
-      send: action,
-      consoleOutput: observable,
+      tabIndex: observable,
+      results: observable,
+      activeResult: computed,
     });
   }
 
-  onMessage = action((e: MessageEvent) => {
-    const result = JSON.parse(e.data) as Message;
-    console.log("Got message", result);
-    this.consoleOutput += `\n${e.data.toString()}`;
+  setTabIndex = action((value: number) => (this.tabIndex = value));
 
-    this.simulation.handleMessage(result);
-    this.results.handleMessage(result);
+  create = action((name?: string) => {
+    if (!name) {
+      name = "Result " + (this.results.length + 1);
+    }
+    this.tabIndex = this.results.push(new ResultStore(this, name)) - 1;
   });
 
-  private onOpen = () => console.log("Socket open");
+  remove = action((index: number) => {
+    this.results.splice(index, 1);
 
-  private onError = (e: Event) => console.warn("Got error", e);
-
-  private onClose = (e: CloseEvent) => {
-    console.warn(`Closing socket. Reason: '${e.reason}', code: ${e.code}`);
-    const maxRetries = 10;
-
-    if (this.numInitSocketRetries < maxRetries) {
-      setTimeout(() => {
-        ++this.numInitSocketRetries;
-        this.initSocket();
-      }, 1000);
+    if (this.results.length === 0) {
+      this.create();
     }
-  };
+  });
 
-  private initSocket() {
-    if (this.socket && this.socket.readyState <= 1) {
-      return;
-    }
-
-    try {
-      console.log("Creating web socket...");
-      const socket = new WebSocket("ws://localhost:8000/ws");
-
-      socket.onmessage = this.onMessage;
-      socket.onerror = this.onError;
-      socket.onopen = this.onOpen;
-      socket.onclose = this.onClose;
-
-      this.socket = socket;
-    } catch (err: any) {
-      console.error(`Error creating web socket: ${err}`);
-    }
-  }
-
-  send(type: string, data: object = {}) {
-    console.log(`Send ${type}:`, data);
-    this.socket?.send(JSON.stringify({ type, data }));
+  get activeResult(): ResultStore {
+    return this.results[this.tabIndex];
   }
 }

@@ -1,35 +1,26 @@
 import React from "react";
 import GridHeader from "./GridHeader";
 import { observer } from "mobx-react";
-import { Skeleton } from "@chakra-ui/react";
+import { Skeleton, Icon } from "@chakra-ui/react";
+import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { useStore } from "../store";
+import type ResultStore from "../store/ResultStore";
+import { AiOutlineClose } from "react-icons/ai";
 
 const Figure = ({ url }: { url?: string } = {}) => {
   return (
-    <Skeleton width={100} height={100} isLoaded={!!url}>
+    <Skeleton width={200} height={200} isLoaded={!!url}>
       <img src={url} />
     </Skeleton>
   );
 };
 
-const PlaceholderOutput = observer(function () {
-  const store = useStore();
-  const { numSteps, numSpecies } = store.simulation;
+const Result = observer(({ result }: { result: ResultStore }) => {
   return (
     <div>
+      {result.name}
       <Figure />
-      Num steps: {numSteps}, num species: {numSpecies}
-    </div>
-  );
-});
-
-const ActiveResult = observer(function () {
-  const store = useStore();
-  const { activeResult } = store.results;
-  return (
-    <div>
-      <Figure />
-      Active result!
+      Current step: {result.currentStep}
     </div>
   );
 });
@@ -40,7 +31,37 @@ export default observer(function Output() {
   return (
     <>
       <GridHeader label="Output" />
-      {store.results.activeResult ? <ActiveResult /> : <PlaceholderOutput />}
+      <Tabs
+        variant="enclosed"
+        onChange={store.setTabIndex}
+        index={store.tabIndex}
+      >
+        <TabList>
+          {store.results.map((result, i) => (
+            <Tab selected={store.tabIndex === i} key={i} pr={2}>
+              {result.name}
+              <Icon
+                ml={2}
+                mr={0}
+                color="transparent"
+                transition="all 0.3s"
+                _hover={{
+                  color: "gray.600",
+                }}
+                as={AiOutlineClose}
+                onClick={() => store.remove(i)}
+              />
+            </Tab>
+          ))}
+        </TabList>
+        <TabPanels>
+          {store.results.map((result, i) => (
+            <TabPanel key={i}>
+              <Result result={result} />
+            </TabPanel>
+          ))}
+        </TabPanels>
+      </Tabs>
     </>
   );
 });

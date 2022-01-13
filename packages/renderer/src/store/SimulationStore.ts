@@ -1,35 +1,23 @@
 import { makeObservable, observable, action } from "mobx";
 import type RootStore from "./RootStore";
-import type { Message } from "./RootStore";
+import type { Message } from "./Socket";
 
-export interface SimulationParams {
-  numSpecies: number;
-  gridSize: number;
-  cellCapacity: number;
-  numSteps: number;
-  dispersalRate: number;
-}
-
-export default class SimulationStore implements SimulationParams {
-  private root: RootStore;
-
+export default class SimulationStore {
   initiating = false;
   initiated = false;
   running = false;
 
   // init params
   numSpecies = 5;
-  gridSize = 40;
+  gridSize = 20;
   cellCapacity = 25;
 
   // simulation params
   file = "";
-  numSteps = 1;
+  numSteps = 3;
   dispersalRate = 0.3;
 
-  constructor(root: RootStore) {
-    this.root = root;
-
+  constructor(private root: RootStore) {
     makeObservable(this, {
       initiated: observable,
       initiating: observable,
@@ -40,12 +28,6 @@ export default class SimulationStore implements SimulationParams {
       numSteps: observable,
       dispersalRate: observable,
     });
-  }
-
-  get params(): SimulationParams {
-    const { numSpecies, gridSize, cellCapacity, numSteps, dispersalRate } =
-      this;
-    return { numSpecies, gridSize, cellCapacity, numSteps, dispersalRate };
   }
 
   handleMessage = action((message: Message) => {
@@ -65,7 +47,10 @@ export default class SimulationStore implements SimulationParams {
       cellCapacity: cell_capacity,
     } = this;
 
-    this.root.send("sim:init", { n_species, grid_size, cell_capacity });
+    this.root.send({
+      type: "sim:init",
+      data: { n_species, grid_size, cell_capacity },
+    });
     this.initiating = true;
   });
 
@@ -76,8 +61,10 @@ export default class SimulationStore implements SimulationParams {
       dispersalRate: dispersal_rate,
     } = this;
 
-    this.root.results.create();
-    this.root.send("sim:run", { sim_file, num_steps, dispersal_rate });
+    this.root.send({
+      type: "sim:run",
+      data: { sim_file, num_steps, dispersal_rate },
+    });
     this.running = true;
   });
 

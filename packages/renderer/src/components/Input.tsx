@@ -23,9 +23,11 @@ export default observer(function Input() {
         <FormLabel htmlFor="num-species">Number of species</FormLabel>
         <NumberInput
           max={50}
-          min={10}
-          value={store.simulation.numSpecies}
-          onChange={(_, value) => store.simulation.setNumSpecies(value)}
+          min={5}
+          value={store.activeResult.simulation.numSpecies}
+          onChange={(_, value) =>
+            store.activeResult.simulation.setNumSpecies(value)
+          }
         >
           <NumberInputField id="num-species" />
           <NumberInputStepper>
@@ -35,10 +37,12 @@ export default observer(function Input() {
         </NumberInput>
         <FormLabel htmlFor="grid-size">Grid size</FormLabel>
         <NumberInput
-          max={50}
+          max={100}
           min={10}
-          value={store.simulation.gridSize}
-          onChange={(_, value) => store.simulation.setGridSize(value)}
+          value={store.activeResult.simulation.gridSize}
+          onChange={(_, value) =>
+            store.activeResult.simulation.setGridSize(value)
+          }
         >
           <NumberInputField id="grid-size" />
           <NumberInputStepper>
@@ -49,9 +53,11 @@ export default observer(function Input() {
         <FormLabel htmlFor="cell-capacity">Cell capacity</FormLabel>
         <NumberInput
           max={60}
-          min={10}
-          value={store.simulation.cellCapacity}
-          onChange={(_, value) => store.simulation.setCellCapacity(value)}
+          min={5}
+          value={store.activeResult.simulation.cellCapacity}
+          onChange={(_, value) =>
+            store.activeResult.simulation.setCellCapacity(value)
+          }
         >
           <NumberInputField id="cell-capacity" />
           <NumberInputStepper>
@@ -63,8 +69,10 @@ export default observer(function Input() {
         <NumberInput
           max={20}
           min={1}
-          value={store.simulation.numSteps}
-          onChange={(_, value) => store.simulation.setNumSteps(value)}
+          value={store.activeResult.simulation.numSteps}
+          onChange={(_, value) =>
+            store.activeResult.simulation.setNumSteps(value)
+          }
         >
           <NumberInputField id="num-steps" />
           <NumberInputStepper>
@@ -77,8 +85,10 @@ export default observer(function Input() {
           max={1}
           step={0.1}
           min={0}
-          value={store.simulation.dispersalRate}
-          onChange={(_, value) => store.simulation.setDispersalRate(value)}
+          value={store.activeResult.simulation.dispersalRate}
+          onChange={(_, value) =>
+            store.activeResult.simulation.setDispersalRate(value)
+          }
         >
           <NumberInputField id="dispersal-rate" />
           <NumberInputStepper>
@@ -87,20 +97,20 @@ export default observer(function Input() {
           </NumberInputStepper>
         </NumberInput>
         <Button
-          isLoading={store.simulation.initiating}
-          disabled={store.simulation.running}
-          onClick={store.simulation.init}
+          isLoading={store.activeResult.simulation.initiating}
+          disabled={store.activeResult.simulation.running}
+          onClick={store.activeResult.simulation.init}
         >
           Init simulation
         </Button>
         <Button
-          disabled={!store.simulation.initiated}
-          isLoading={store.simulation.running}
-          onClick={store.simulation.run}
+          disabled={!store.activeResult.simulation.initiated}
+          isLoading={store.activeResult.simulation.running}
+          onClick={store.activeResult.simulation.run}
         >
           Run simulation
         </Button>
-        <Button onClick={store.results.create}>Test result</Button>
+        <Button onClick={() => store.create()}>Test result</Button>
       </FormControl>
     </>
   );
