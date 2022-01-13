@@ -116,11 +116,10 @@ class WS(WebSocketEndpoint):
                     await asyncio.sleep(0.001)
                 print("captain task finished!")
 
-            task1 = asyncio.create_task(progress_task())
-            task2 = asyncio.create_task(captain_task())
-
-            await task1
-            await task2
+            await asyncio.gather(
+                progress_task(),
+                captain_task(),
+            )
 
             await websocket.send_json({ 'type': 'sim:run', 'data': "http://localhost:8000/static/" })
             print(flush=True)
