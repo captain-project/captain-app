@@ -101,7 +101,7 @@ class WS(WebSocketEndpoint):
                     await asyncio.sleep(0.001)
                     while len(progress_items) > 0:
                         progress_type, progress_data = progress_items.pop(0)
-                        print(f"Progress task have {len(progress_items) + 1} items, processing {progress_data['filename']}")
+                        print(f"Progress task have {len(progress_items) + 1} items, processing {progress_data}")
                         await websocket.send_json({ "type": progress_type, "data": progress_data })
                         if progress_type == "finished":
                             finished = True
@@ -111,7 +111,7 @@ class WS(WebSocketEndpoint):
 
             async def captain_task():
                 for progress_type, progress_data in captain_api.simulate_biodiv_env(**data["data"]):
-                    print(progress_type, progress_data['filename'], flush=True)
+                    print(progress_type, progress_data, flush=True)
                     progress_items.append((progress_type, progress_data))
                     await asyncio.sleep(0.001)
                 print("captain task finished!")
