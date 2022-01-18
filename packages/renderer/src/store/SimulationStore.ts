@@ -35,6 +35,7 @@ export default class SimulationStore {
       this.initiating = false;
       this.initiated = true;
       this.file = message.data;
+      console.log("Simulation initiated");
     } else if (message.type === "sim:run") {
       this.running = false;
     }

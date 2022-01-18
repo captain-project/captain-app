@@ -1,23 +1,32 @@
-import { makeObservable, observable, action } from "mobx";
+import { makeObservable, observable, action, computed } from "mobx";
 import type RootStore from "./RootStore";
 import type { Message } from "./Socket";
 import SimulationStore from "./SimulationStore";
 import { range } from "../utils";
 
-type Figure = {
+export type Figure = {
   title: string;
   url: string;
+  step: number;
+  plot: number;
+  key: string;
 };
 
-type Step = {
+export type Step = {
   step: number;
   figures: Figure[];
+};
+
+type ProgressData = {
+  step: number;
+  plot: number;
+  filename: string;
 };
 
 export default class ResultStore {
   finished = false;
   currentStep = 0;
-  currentFigureCount = 0;
+  currentPlot = 0;
   figures: Step[] = [];
   simulation: SimulationStore;
   consoleOutput = "";
@@ -29,10 +38,18 @@ export default class ResultStore {
     makeObservable(this, {
       finished: observable,
       currentStep: observable,
-      currentFigureCount: observable,
+      currentPlot: observable,
       consoleOutput: observable,
       figures: observable, //.array,
+      progress: computed,
     });
+  }
+
+  get progress() {
+    return (
+      (100 * (this.currentStep * this.numFigures + this.currentPlot)) /
+      (this.numSteps * this.numFigures)
+    );
   }
 
   get numFigures() {
@@ -47,16 +64,19 @@ export default class ResultStore {
     console.log(
       `Init ${this.numFigures} figures per step for ${this.numSteps} steps...`
     );
-    const initFiguresInStep = () =>
+    const initFiguresInStep = (step: number) =>
       [...range(this.numFigures)].map((i) => ({
         title: getFigTitle(i),
         url: "",
+        step,
+        plot: i,
+        key: `${step}-${i}`,
       }));
 
     for (const i of range(this.numSteps)) {
       this.figures.push({
         step: i,
-        figures: initFiguresInStep(),
+        figures: initFiguresInStep(i),
       });
     }
   }
@@ -67,11 +87,22 @@ export default class ResultStore {
 
     if (message.type === "plot:progress") {
       this.currentStep = message.data.step;
-      this.currentFigureCount = message.data.count;
+      this.currentPlot = message.data.plot;
+      this.handleProgressData(message.data);
     } else if (message.type === "plot:finished") {
       this.finished = true;
     } else if (message.type.startsWith("sim")) {
       this.simulation.handleMessage(message);
+    }
+  });
+
+  handleProgressData = action((data: ProgressData) => {
+    const { step, plot, filename } = data;
+    try {
+      const figure = this.figures[step].figures[plot];
+      figure.url = `http://localhost:8000${filename.substring(1)}`;
+    } catch (e) {
+      console.error("Error handle progress data:", e);
     }
   });
 }

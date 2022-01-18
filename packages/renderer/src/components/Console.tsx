@@ -9,7 +9,13 @@ export default observer(function Console() {
   return (
     <>
       <GridHeader label="Console" />
-      <Box overflow="scroll" maxHeight="33vh" w="100%" fontSize="sm">
+      <Box
+        overflow="scroll"
+        maxHeight="33vh"
+        minHeight="33vh"
+        w="100%"
+        fontSize="sm"
+      >
         <code>
           <pre>{store.activeResult?.consoleOutput}</pre>
         </code>
