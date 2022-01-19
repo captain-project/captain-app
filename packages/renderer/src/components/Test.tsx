@@ -5,11 +5,11 @@ import app from "../store/client";
 
 export default observer(function Test() {
   const onClickTest = async () => {
-    console.log("Creating test message...");
-    const m = await app
-      .service("messages")
-      .create({ text: `Random number: ${Math.round(Math.random() * 100)}` });
-    console.log("Created test message:", m);
+    const message = {
+      type: "test:optimizePlotData",
+    };
+    console.log("Testing:", message);
+    await app.service("messages").create(message);
   };
 
   return (

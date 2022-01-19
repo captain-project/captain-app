@@ -3,6 +3,7 @@ import type RootStore from "./RootStore";
 import type { Message } from "./Socket";
 import SimulationStore from "./SimulationStore";
 import { range } from "../utils";
+import type { SimulationProgressData } from "/shared/types";
 
 export type Figure = {
   title: string;
@@ -15,12 +16,6 @@ export type Figure = {
 export type Step = {
   step: number;
   figures: Figure[];
-};
-
-type ProgressData = {
-  step: number;
-  plot: number;
-  filename: string;
 };
 
 export default class ResultStore {
@@ -92,7 +87,7 @@ export default class ResultStore {
     }
   });
 
-  handleProgressData = action((data: ProgressData) => {
+  handleProgressData = action((data: SimulationProgressData) => {
     const { step, plot, filename } = data;
     this.currentStep = step;
     this.currentPlot = plot;

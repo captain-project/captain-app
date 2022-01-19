@@ -1,6 +1,6 @@
 import { makeObservable, observable, action, computed } from "mobx";
 import ResultStore from "./ResultStore";
-import type { Message, MessageHandler } from "./Socket";
+import type { Message, MessageHandler } from "/shared/types";
 import app from "./client";
 
 export default class RootStore {

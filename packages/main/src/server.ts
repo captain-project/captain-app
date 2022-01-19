@@ -7,31 +7,21 @@ const express = require("@feathersjs/express");
 const socketio = require("@feathersjs/socketio");
 import { join } from "path";
 import { app as electron } from "electron";
+import type { Message, Progress } from "/shared/types";
 
 const staticDir = join(electron.getAppPath(), "python", "static");
-
-// This is the interface for the message data
-export interface Message {
-  id: number;
-  text: string;
-}
-
-export interface Progress {
-  type: string;
-  data?: object | string | number;
-}
 
 // A messages service that allows to create new
 // and return all existing messages
 class MessageService {
-  messages: any[] = [];
+  messages: Message[] = [];
 
   async find() {
     // Just return all our messages
     return this.messages;
   }
 
-  async create(data: any) {
+  async create(data: Message) {
     this.messages.push(data);
     return data;
   }
