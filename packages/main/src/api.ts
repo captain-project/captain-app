@@ -1,63 +1,62 @@
-//import { Server } from "socket.io";
 import { spawn } from "child_process";
 import type { ChildProcessWithoutNullStreams } from "child_process";
 import { app } from "electron";
 import { join } from "path";
+import feathersApp from "./server";
+import type { Progress, Message } from "./server";
 
-// const io = new Server({
-//   serveClient: false,
-//   cors: {
-//     // origin: "http://localhost:3000",
-//     origin: "*", // For Live Share
-//     methods: ["GET", "POST"],
-//   },
-// });
+console.log("API created!");
 
-// io.on("connection", (socket) => {
-//   //console.log(`Client connected: ${socket.id}`);
+feathersApp.service("messages").on("created", (message: Message) => {
+  console.log("Api got message:", message);
+});
 
-//   socket.on("message", (data) => {
-//     //console.log(`Got message: ${JSON.stringify(data)}`);
-//     //socket.send({ foo: "bar" });
-//     //testPython();
-//   });
-// });
+feathersApp.service("pythonprogress").on("created", (progress: Progress) => {
+  console.log("Api got python progress:", progress);
+  // optimize svg with svgo and create raster thumbnail
+  // progress.data.svg = ...
+  // progress.data.thumbnail = ...
+  feathersApp.service("progress").create(progress);
+});
 
-// io.listen(8080);
-
-const cwd = join(app.getAppPath(), "python");
-
-export class PythonServer {
+const pythonPath = join(app.getAppPath(), "python");
+export class PythonClient {
   proc: ChildProcessWithoutNullStreams;
 
-  constructor({ port = 8000 }: { port?: number } = {}) {
-    this.proc = spawn("uvicorn", ["--port", port.toString(), "server:app"], {
-      cwd,
+  constructor() {
+    this.proc = spawn("python", ["client.py"], {
+      cwd: pythonPath,
     });
 
     this.proc.stdout.on("data", (data) => {
-      console.log(`uvicorn stdout: ${data.toString()}`);
+      console.log(`python stdout: ${data.toString()}`);
+      // feathersApp
+      //   .service("progress")
+      //   .create({ type: "python-stdout", data: data.toString() });
     });
 
     const stderrChunks: any = [];
     this.proc.stderr.on("data", (data) => {
       stderrChunks.push(data);
-      console.error(`uvicorn error: ${Buffer.concat([data]).toString()}`);
+      console.error(`python error: ${Buffer.concat([data]).toString()}`);
+      // feathersApp
+      //   .service("progress")
+      //   .create({ type: "python-stderr", data: data.toString() });
     });
   }
 
   kill() {
-    console.log("Killing python server...");
+    console.log("Killing python client...");
     this.proc.kill();
   }
 }
 
-const server = new PythonServer();
+const pythonClient = new PythonClient();
 
 export default {
   dispose() {
-    server.kill();
+    pythonClient.kill();
   },
 };
 
-console.log("..");
+console.log("...");

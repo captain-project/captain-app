@@ -40,16 +40,21 @@ import Input from "./components/Input";
 
 export default function App() {
   return (
-    <Grid h="100vh" bg="white" templateRows="2fr 1fr" templateColumns="1fr 1fr">
+    <Grid
+      h="100vh"
+      bg="white"
+      //templateRows="2fr 1fr"
+      templateColumns="1fr 1fr"
+    >
       <GridItem borderColor="gray.300" borderWidth={1}>
         <Input />
       </GridItem>
       <GridItem borderColor="gray.300" borderWidth={1}>
         <Output />
       </GridItem>
-      <GridItem borderColor="gray.300" borderWidth={1} colSpan={2}>
+      {/* <GridItem borderColor="gray.300" borderWidth={1} colSpan={2}>
         <Console />
-      </GridItem>
+      </GridItem> */}
     </Grid>
   );
 }

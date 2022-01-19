@@ -82,14 +82,16 @@ class WS(WebSocketEndpoint):
         msg_type = data["type"]
         print(f"Got message with type '{msg_type}':", data, flush=True)
 
-        if msg_type == "sim:init":
-            sim_file = captain_api.init_simulated_system(**data["data"])
-            await websocket.send_json({ 'type': 'sim:init', 'data': sim_file })
-            print(flush=True)
-            return
+        # if msg_type == "sim:init":
+        #     sim_file = captain_api.init_simulated_system(**data["data"])
+        #     await websocket.send_json({ 'type': 'sim:init', 'data': sim_file })
+        #     print(flush=True)
+        #     return
 
 
         if msg_type == "sim:run":
+            sim_file = captain_api.init_simulated_system(**data["data"]["init"])
+            print(flush=True)
 
             progress_items = []
             # job_id = data["data"]["id"]
@@ -110,7 +112,7 @@ class WS(WebSocketEndpoint):
                 print("progress task finished!")
 
             async def captain_task():
-                for progress_type, progress_data in captain_api.simulate_biodiv_env(**data["data"]):
+                for progress_type, progress_data in captain_api.simulate_biodiv_env(sim_file=sim_file, **data["data"]["run"]):
                     print(progress_type, progress_data, flush=True)
                     progress_items.append((progress_type, progress_data))
                     await asyncio.sleep(0.001)

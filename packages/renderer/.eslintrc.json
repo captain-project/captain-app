@@ -10,7 +10,8 @@
   ],
   "rules": {
     "no-unused-vars": "warn",
-    "@typescript-eslint/no-unused-vars": "warn"
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn"
   },
   "parserOptions": {
     "parser": "@typescript-eslint/parser",

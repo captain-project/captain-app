@@ -1,25 +1,27 @@
 import { makeObservable, observable, action, computed } from "mobx";
 import ResultStore from "./ResultStore";
-import Socket from "./Socket";
 import type { Message, MessageHandler } from "./Socket";
+import app from "./client";
 
 export default class RootStore {
   tabIndex = 0;
-  socket: Socket;
   results: ResultStore[] = [new ResultStore(this, "Result 1")];
   send: MessageHandler;
 
   constructor() {
-    this.socket = new Socket(
-      (message: Message) => this.activeResult?.handleMessage(message) // todo
-    );
-
-    this.send = this.socket.send;
+    this.send = (data: Message) => {
+      app.service("messages").create(data);
+    };
 
     makeObservable(this, {
       tabIndex: observable,
       results: observable,
       activeResult: computed,
+    });
+
+    app.service("progress").on("created", (progress: any) => {
+      console.log("Progress:", progress);
+      this.activeResult?.handleMessage(progress);
     });
   }
 

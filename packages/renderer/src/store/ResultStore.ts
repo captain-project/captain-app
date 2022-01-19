@@ -64,30 +64,26 @@ export default class ResultStore {
     console.log(
       `Init ${this.numFigures} figures per step for ${this.numSteps} steps...`
     );
-    const initFiguresInStep = (step: number) =>
-      [...range(this.numFigures)].map((i) => ({
-        title: getFigTitle(i),
-        url: "",
-        step,
-        plot: i,
-        key: `${step}-${i}`,
-      }));
 
-    for (const i of range(this.numSteps)) {
+    for (const step of range(this.numSteps)) {
       this.figures.push({
-        step: i,
-        figures: initFiguresInStep(i),
+        step,
+        figures: [...range(this.numFigures)].map((plot) => ({
+          title: getFigTitle(plot),
+          url: "",
+          step,
+          plot,
+          key: `${step}-${plot}`,
+        })),
       });
     }
   }
 
   handleMessage = action((message: Message) => {
-    console.log("Result progress:", message);
+    // console.log("Result progress:", message);
     this.consoleOutput += JSON.stringify(message) + "\n";
 
     if (message.type === "plot:progress") {
-      this.currentStep = message.data.step;
-      this.currentPlot = message.data.plot;
       this.handleProgressData(message.data);
     } else if (message.type === "plot:finished") {
       this.finished = true;
@@ -98,9 +94,13 @@ export default class ResultStore {
 
   handleProgressData = action((data: ProgressData) => {
     const { step, plot, filename } = data;
+    this.currentStep = step;
+    this.currentPlot = plot;
+
     try {
       const figure = this.figures[step].figures[plot];
-      figure.url = `http://localhost:8000${filename.substring(1)}`;
+      const basename = filename.split("/").pop();
+      figure.url = `//localhost:3030/${basename}`;
     } catch (e) {
       console.error("Error handle progress data:", e);
     }

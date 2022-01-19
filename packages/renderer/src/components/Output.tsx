@@ -1,11 +1,9 @@
 import React from "react";
 import GridHeader from "./GridHeader";
 import { observer } from "mobx-react";
-import { Icon, Progress } from "@chakra-ui/react";
-import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
+import { Progress } from "@chakra-ui/react";
 import { useStore } from "../store";
 import type ResultStore from "../store/ResultStore";
-import { AiOutlineClose } from "react-icons/ai";
 import Figures from "./Figures";
 
 const ResultProgress = observer(({ result }: { result: ResultStore }) => {

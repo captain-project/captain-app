@@ -1,6 +1,8 @@
 import captain as cn
+from functools import lru_cache
 
 
+@lru_cache
 def init_simulated_system(*args, **kwargs):
     sim_file = cn.init_simulated_system(out_dir='./static/sim_data', **kwargs)
     return sim_file
