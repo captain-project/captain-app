@@ -1,6 +1,7 @@
-import type { SimulationProgressData } from "/shared/types";
-import { optimize } from "svgo";
 import { promises as fs } from "fs";
+import { join, parse } from "path";
+const svgo = require("svgo").optimize;
+const sharp = require("sharp");
 
 interface SvgoResult {
   data: string; // the optimized svg
@@ -11,16 +12,20 @@ interface SvgoResult {
   };
 }
 
-export async function optimizePlotData(data: SimulationProgressData) {
-  console.log("Optimize data:", data);
-  const svg = await fs.readFile(data.filename);
-  const result: SvgoResult = optimize(svg, {
-    path: data.filename,
+export async function optimizeSVG(inputPath: string, outputPath?: string) {
+  const svgString = await fs.readFile(inputPath);
+  const result: SvgoResult = svgo(svgString, {
+    path: inputPath,
   });
-  await fs.writeFile(data.filename, result.data);
-  return data;
+  await fs.writeFile(outputPath ?? inputPath, result.data);
+}
 
-  // optimize svg with svgo and create raster thumbnail
-  // progress.data.svg = ...
-  // progress.data.thumbnail = ...
+export async function createThumbnail(
+  inputPath: string,
+  format: "jpg" | "webp" = "jpg"
+) {
+  const { dir, name } = parse(inputPath);
+  const outputPath = `${join(dir, name)}-thumbnail.${format}`;
+  await sharp(inputPath).resize({ quality: 10 }).toFile(outputPath);
+  return outputPath;
 }

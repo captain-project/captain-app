@@ -5,6 +5,7 @@ dist
 thumbs.db
 
 /python/static/*
+/python/trained_models/*
 __pycache__
 
 .eslintcache

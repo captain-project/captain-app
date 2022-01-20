@@ -3,19 +3,39 @@ import type { ChildProcessWithoutNullStreams } from "child_process";
 import { app } from "electron";
 import { join } from "path";
 import feathersApp from "./server";
-import type { Progress, Message, SimulationProgressData } from "/shared/types";
-import { optimizePlotData } from "./optimizePlot";
+import type {
+  Progress,
+  Message,
+  SimulationProgressData,
+  OptimizedSimulationProgressData,
+} from "/shared/types";
+import { optimizeSVG, createThumbnail } from "./optimizePlot";
 
 const pythonPath = join(app.getAppPath(), "python");
 console.log("API created!");
 
-const fixFilename = (data: SimulationProgressData) => {
-  const { filename } = data;
-  const name = filename.split("/").pop() as string;
-  const filePath = join(pythonPath, "static", name);
-  data.filename = filePath;
-  return data;
+const filenameToUrl = (filename: string) => {
+  const parts = filename.split("/");
+  while (parts[0] !== "static") {
+    parts.shift();
+  }
+  parts.shift(); // Remove static
+  return `//localhost:${feathersApp.get("port")}/${parts.join("/")}`;
 };
+
+const getAbsolutePathFromPython = (filename: string) => {
+  return join(pythonPath, filename);
+};
+
+export async function optimizePlotData(data: SimulationProgressData) {
+  await optimizeSVG(data.filename);
+  data.svgUrl = filenameToUrl(data.filename);
+
+  const thumbnailPath = await createThumbnail(data.filename);
+  data.thumbnailUrl = filenameToUrl(thumbnailPath);
+
+  return data as OptimizedSimulationProgressData;
+}
 
 feathersApp.service("messages").on("created", async (message: Message) => {
   console.log("Api got message:", message);
@@ -24,12 +44,13 @@ feathersApp.service("messages").on("created", async (message: Message) => {
     const data = {
       step: 3,
       plot: 9,
+      title: "test!",
       filename: "./static/sim_step_3_p9.svg",
     };
-    fixFilename(data);
+    data.filename = getAbsolutePathFromPython(data.filename);
     console.log("Optimize plot data:", data);
-
     await optimizePlotData(data);
+    console.log("Optimized plot data:", data);
   }
 });
 
@@ -39,7 +60,7 @@ feathersApp
     console.log("Api got python progress:", progress);
     if (progress.type === "plot:progress") {
       const data = progress.data as SimulationProgressData;
-      fixFilename(data);
+      data.filename = getAbsolutePathFromPython(data.filename);
       await optimizePlotData(data);
     }
     feathersApp.service("progress").create(progress);

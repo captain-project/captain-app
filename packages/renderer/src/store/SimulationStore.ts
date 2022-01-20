@@ -5,7 +5,7 @@ import type { Message } from "./Socket";
 export default class SimulationStore {
   // initiating = false;
   // initiated = false;
-  running = false;
+  isRunning = false;
 
   // init params
   numSpecies = 5;
@@ -21,7 +21,7 @@ export default class SimulationStore {
     makeObservable(this, {
       // initiated: observable,
       // initiating: observable,
-      // running: observable,
+      isRunning: observable,
       numSpecies: observable,
       gridSize: observable,
       cellCapacity: observable,
@@ -38,7 +38,7 @@ export default class SimulationStore {
     //   console.log("Simulation initiated");
     // } else
     if (message.type === "sim:run") {
-      this.running = false;
+      this.isRunning = false;
     }
   });
 
@@ -81,7 +81,7 @@ export default class SimulationStore {
         },
       },
     });
-    this.running = true;
+    this.isRunning = true;
   });
 
   setNumSpecies = action((value: number) => (this.numSpecies = value));

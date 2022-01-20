@@ -15,4 +15,9 @@ export interface SimulationProgressData {
   step: number;
   plot: number;
   filename: string;
+  title: string;
+  svgUrl?: string;
+  thumbnailUrl?: string;
 }
+
+export type OptimizedSimulationProgressData = Required<SimulationProgressData>;

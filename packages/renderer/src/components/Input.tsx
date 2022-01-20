@@ -120,7 +120,7 @@ export default observer(function Input() {
           </Select>
 
           <Button
-            isLoading={store.activeResult.simulation.running}
+            isLoading={store.activeResult.simulation.isRunning}
             onClick={() => store.activeResult.simulation.run()}
           >
             Run simulation

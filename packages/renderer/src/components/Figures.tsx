@@ -37,14 +37,18 @@ const Figure = observer(
     width,
     height,
     figure,
+    thumbnail,
   }: {
     width: number;
     height: number;
     figure: FigureType;
+    thumbnail?: boolean;
   }) => {
+    const url = thumbnail ? figure.thumbnailUrl : figure.url;
+    const isLoaded = url !== "";
     return (
-      <Skeleton width={width} height={height} isLoaded={!!figure.url}>
-        <ChakraImage htmlWidth={width} htmlHeight={height} src={figure.url} />
+      <Skeleton width={width} height={height} isLoaded={isLoaded}>
+        <ChakraImage htmlWidth={width} htmlHeight={height} src={url} />
       </Skeleton>
     );
   }
@@ -52,8 +56,10 @@ const Figure = observer(
 
 const Thumbnail = observer(({ figure }: { figure: FigureType }) => {
   return (
-    <div>
-      <Figure width={50} height={50} figure={figure} />
+    <div
+      title={`${figure.title} (step: ${figure.step}, plot: ${figure.plot}, url: ${figure.url})`}
+    >
+      <Figure width={50} height={50} figure={figure} thumbnail />
       <div>{figure.title}</div>
     </div>
   );

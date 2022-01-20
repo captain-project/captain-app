@@ -7,7 +7,9 @@ import type ResultStore from "../store/ResultStore";
 import Figures from "./Figures";
 
 const ResultProgress = observer(({ result }: { result: ResultStore }) => {
-  return <Progress value={result.progress} size="xs" />;
+  return result.simulation.isRunning ? (
+    <Progress value={result.progress} size="xs" />
+  ) : null;
 });
 
 const Result = observer(({ result }: { result: ResultStore }) => {

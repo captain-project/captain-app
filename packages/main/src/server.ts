@@ -39,8 +39,11 @@ class PythonProgressService {
   }
 }
 
+const port = 3030;
+
 // Creates an ExpressJS compatible Feathers application
 const app = express(feathers());
+app.set("port", port);
 
 // Express middleware to parse HTTP JSON bodies
 app.use(express.json());
@@ -91,8 +94,8 @@ app.on("connection", (connection: { headers: { "user-agent": string } }) => {
 app.publish(() => app.channel("everybody"));
 
 // Start the server
-app.listen(3030).then(() => {
-  console.log("Feathers server listening on localhost:3030");
+app.listen(port).then(() => {
+  console.log(`Feathers server listening on localhost:${port}`);
 });
 
 // For good measure let's create a message

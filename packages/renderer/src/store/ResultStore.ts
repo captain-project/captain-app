@@ -3,14 +3,16 @@ import type RootStore from "./RootStore";
 import type { Message } from "./Socket";
 import SimulationStore from "./SimulationStore";
 import { range } from "../utils";
-import type { SimulationProgressData } from "/shared/types";
+import type { OptimizedSimulationProgressData } from "/shared/types";
 
 export type Figure = {
   title: string;
   url: string;
+  thumbnailUrl: string;
   step: number;
   plot: number;
   key: string;
+  isLoaded: boolean;
 };
 
 export type Step = {
@@ -41,9 +43,17 @@ export default class ResultStore {
   }
 
   get progress() {
+    const totFigures = this.numSteps * this.numFigures;
+
     return (
-      (100 * (this.currentStep * this.numFigures + this.currentPlot)) /
-      (this.numSteps * this.numFigures)
+      (100 *
+        this.figures.reduce(
+          (tot, { figures }) =>
+            tot +
+            figures.reduce((tot, { isLoaded }) => tot + Number(isLoaded), 0),
+          0
+        )) /
+      totFigures
     );
   }
 
@@ -66,9 +76,11 @@ export default class ResultStore {
         figures: [...range(this.numFigures)].map((plot) => ({
           title: getFigTitle(plot),
           url: "",
+          thumbnailUrl: "",
           step,
           plot,
           key: `${step}-${plot}`,
+          isLoaded: false,
         })),
       });
     }
@@ -87,15 +99,17 @@ export default class ResultStore {
     }
   });
 
-  handleProgressData = action((data: SimulationProgressData) => {
-    const { step, plot, filename } = data;
+  handleProgressData = action((data: OptimizedSimulationProgressData) => {
+    const { step, plot, title, svgUrl, thumbnailUrl } = data;
     this.currentStep = step;
     this.currentPlot = plot;
 
     try {
       const figure = this.figures[step].figures[plot];
-      const basename = filename.split("/").pop();
-      figure.url = `//localhost:3030/${basename}`;
+      figure.url = svgUrl;
+      figure.thumbnailUrl = thumbnailUrl;
+      figure.isLoaded = true;
+      figure.title = title;
     } catch (e) {
       console.error("Error handle progress data:", e);
     }
