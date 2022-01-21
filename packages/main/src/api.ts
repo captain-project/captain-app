@@ -3,6 +3,7 @@ import type { ChildProcessWithoutNullStreams } from "child_process";
 import { app } from "electron";
 import { join } from "path";
 import feathersApp from "./server";
+import logger from "./server/logger";
 import type {
   Progress,
   Message,
@@ -12,15 +13,34 @@ import type {
 import { optimizeSVG, createThumbnail } from "./optimizePlot";
 
 const pythonPath = join(app.getAppPath(), "python");
-console.log("API created!");
+console.log(`API created! Python path: '${pythonPath}'`);
 
-const filenameToUrl = (filename: string) => {
+process.on("unhandledRejection", (reason, p) => {
+  logger.error("Unhandled Rejection at: Promise ", p, reason);
+});
+
+const port = 3030;
+feathersApp.set("port", port);
+feathersApp.listen(port).then((server) => {
+  server.on("listening", () => {
+    logger.info(
+      "Feathers application started on http://%s:%d",
+      feathersApp.get("host"),
+      port
+    );
+  });
+});
+
+const pythonFilenameToUrl = (filename: string) => {
+  if (filename.indexOf("/static/") < 0) {
+    return filename;
+  }
   const parts = filename.split("/");
   while (parts[0] !== "static") {
     parts.shift();
   }
   parts.shift(); // Remove static
-  return `//localhost:${feathersApp.get("port")}/${parts.join("/")}`;
+  return `//localhost:${port}/${parts.join("/")}`;
 };
 
 const getAbsolutePathFromPython = (filename: string) => {
@@ -29,10 +49,10 @@ const getAbsolutePathFromPython = (filename: string) => {
 
 export async function optimizePlotData(data: SimulationProgressData) {
   await optimizeSVG(data.filename);
-  data.svgUrl = filenameToUrl(data.filename);
+  data.svgUrl = pythonFilenameToUrl(data.filename);
 
   const thumbnailPath = await createThumbnail(data.filename);
-  data.thumbnailUrl = filenameToUrl(thumbnailPath);
+  data.thumbnailUrl = pythonFilenameToUrl(thumbnailPath);
 
   return data as OptimizedSimulationProgressData;
 }
@@ -44,7 +64,7 @@ feathersApp.service("messages").on("created", async (message: Message) => {
     const data = {
       step: 3,
       plot: 9,
-      title: "test!",
+      title: "test!!",
       filename: "./static/sim_step_3_p9.svg",
     };
     data.filename = getAbsolutePathFromPython(data.filename);
@@ -54,17 +74,17 @@ feathersApp.service("messages").on("created", async (message: Message) => {
   }
 });
 
-feathersApp
-  .service("pythonprogress")
-  .on("created", async (progress: Progress) => {
-    console.log("Api got python progress:", progress);
-    if (progress.type === "plot:progress") {
-      const data = progress.data as SimulationProgressData;
-      data.filename = getAbsolutePathFromPython(data.filename);
-      await optimizePlotData(data);
-    }
-    feathersApp.service("progress").create(progress);
-  });
+// feathersApp
+//   .service("pythonprogress")
+//   .on("created", async (progress: Progress) => {
+//     console.log("Api got python progress:", progress);
+//     if (progress.type === "plot:progress") {
+//       const data = progress.data as SimulationProgressData;
+//       data.filename = getAbsolutePathFromPython(data.filename);
+//       await optimizePlotData(data);
+//     }
+//     feathersApp.service("progress").create(progress);
+//   });
 
 export class PythonClient {
   proc: ChildProcessWithoutNullStreams;

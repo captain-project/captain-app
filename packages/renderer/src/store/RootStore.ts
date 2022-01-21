@@ -20,7 +20,7 @@ export default class RootStore {
     });
 
     app.service("progress").on("created", (progress: any) => {
-      console.log("Progress:", progress);
+      // console.log("Progress:", progress);
       this.activeResult?.handleMessage(progress);
     });
   }

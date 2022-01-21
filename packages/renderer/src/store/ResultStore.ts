@@ -87,16 +87,16 @@ export default class ResultStore {
   }
 
   handleMessage = action((message: Message) => {
-    // console.log("Result progress:", message);
+    console.log("Result progress:", message);
     this.consoleOutput += JSON.stringify(message) + "\n";
 
-    if (message.type === "plot:progress") {
-      this.handleProgressData(message.data);
-    } else if (message.type === "plot:finished") {
-      this.finished = true;
-    } else if (message.type.startsWith("sim")) {
-      this.simulation.handleMessage(message);
-    }
+    // if (message.type === "plot:progress") {
+    //   this.handleProgressData(message.data);
+    // } else if (message.type === "plot:finished") {
+    //   this.finished = true;
+    // } else if (message.type.startsWith("sim")) {
+    //   this.simulation.handleMessage(message);
+    // }
   });
 
   handleProgressData = action((data: OptimizedSimulationProgressData) => {

@@ -20,6 +20,17 @@ def simulate_biodiv_env(*args, num_steps=1, **kwargs):
             env.step()
             yield from cn.plot_env_state(env, wd='./static', file_format="svg", yield_progress=True)
 
-    yield "finished", num_steps
+    yield "finished_step", num_steps
 
 
+def run_policy():
+    cn.run_policy(simulations=1,
+                  steps=1,
+                  trained_model=None,
+                  budget=0.11,
+                  observePolicy=1,
+                  wd="./static/sim_data/pickles",
+                  outfile="sim_random_policy.log",
+                  )
+
+    return "sim_random_policy.log"

@@ -16,5 +16,8 @@
   ],
   "include": [
     "../../types/**/*.d.ts"
+  ],
+  "exclude": [
+    "test"
   ]
 }

@@ -127,8 +127,6 @@ export default observer(function Input() {
           </Button>
 
           <Test />
-
-          {/* <Button onClick={() => store.create()}>Test result</Button> */}
         </FormControl>
       </Box>
     </>
