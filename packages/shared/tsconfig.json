@@ -14,7 +14,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "**/*",
+    "**/*", "../renderer/src/utils/figures.ts", "../renderer/src/utils/figures.ts",
   ],
   "exclude": [
     "node_modules"

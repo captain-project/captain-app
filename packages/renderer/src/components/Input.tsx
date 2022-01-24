@@ -117,6 +117,11 @@ export default observer(function Input() {
           <Select value="No policy" onChange={(value) => {}}>
             <option value="No policy">No policy</option>
             <option value="Random">Random</option>
+            <option value="Random">Random</option>
+            <option value="Random">Random</option>
+            <option value="Random">Random</option>
+            <option value="Random">Random</option>
+            <option value="Random">Random</option>
           </Select>
 
           <Button

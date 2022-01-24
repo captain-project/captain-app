@@ -1,9 +1,12 @@
 import { makeObservable, observable, action, computed } from "mobx";
 import type RootStore from "./RootStore";
-import type { Message } from "./Socket";
 import SimulationStore from "./SimulationStore";
 import { range } from "../utils";
-import type { OptimizedSimulationProgressData } from "/shared/types";
+import type {
+  OptimizedSimulationProgressData,
+  SimProgressData,
+} from "/shared/types";
+import { FIG_TITLES, getFigTitle } from "../utils/figures";
 
 export type Figure = {
   title: string;
@@ -21,40 +24,48 @@ export type Step = {
 };
 
 export default class ResultStore {
-  finished = false;
   currentStep = 0;
   currentPlot = 0;
+  progressCount = 0;
+  progressTotal = 0;
   figures: Step[] = [];
   simulation: SimulationStore;
   consoleOutput = "";
 
   constructor(private root: RootStore, public name: string) {
     this.simulation = new SimulationStore(root);
+    this.progressTotal = this.numFigures;
     this.initFigures();
 
     makeObservable(this, {
-      finished: observable,
       currentStep: observable,
       currentPlot: observable,
+      progressCount: observable,
       consoleOutput: observable,
       figures: observable, //.array,
       progress: computed,
+      finished: computed,
     });
   }
 
   get progress() {
-    const totFigures = this.numSteps * this.numFigures;
+    return (100 * this.progressCount) / this.progressTotal;
+    // const totFigures = this.numSteps * this.numFigures;
 
-    return (
-      (100 *
-        this.figures.reduce(
-          (tot, { figures }) =>
-            tot +
-            figures.reduce((tot, { isLoaded }) => tot + Number(isLoaded), 0),
-          0
-        )) /
-      totFigures
-    );
+    // return (
+    //   (100 *
+    //     this.figures.reduce(
+    //       (tot, { figures }) =>
+    //         tot +
+    //         figures.reduce((tot, { isLoaded }) => tot + Number(isLoaded), 0),
+    //       0
+    //     )) /
+    //   totFigures
+    // );
+  }
+
+  get finished() {
+    return this.progressCount === this.progressTotal;
   }
 
   get numFigures() {
@@ -86,23 +97,36 @@ export default class ResultStore {
     }
   }
 
-  handleMessage = action((message: Message) => {
-    console.log("Result progress:", message);
-    this.consoleOutput += JSON.stringify(message) + "\n";
+  handleMessage = action(
+    (service: string, data: { type: string; data?: any }) => {
+      this.consoleOutput += JSON.stringify(data) + "\n";
 
-    // if (message.type === "plot:progress") {
-    //   this.handleProgressData(message.data);
-    // } else if (message.type === "plot:finished") {
-    //   this.finished = true;
-    // } else if (message.type.startsWith("sim")) {
-    //   this.simulation.handleMessage(message);
-    // }
-  });
+      if (service === "progress") {
+        if (data.type === "plot:progress") {
+          this.handleProgressData(data.data);
+        } else if (data.type === "plot:finished") {
+          // this.finished = true;
+        } else if (data.type.startsWith("sim")) {
+          this.simulation.handleMessage(data);
+        }
+      }
+    }
+  );
 
-  handleProgressData = action((data: OptimizedSimulationProgressData) => {
-    const { step, plot, title, svgUrl, thumbnailUrl } = data;
+  handleProgressData = action((data: SimProgressData) => {
+    const {
+      step,
+      plot,
+      title,
+      svgUrl,
+      thumbnailUrl,
+      progressCount,
+      progressTotal,
+    } = data;
     this.currentStep = step;
     this.currentPlot = plot;
+    this.progressCount = progressCount;
+    this.progressTotal = progressTotal;
 
     try {
       const figure = this.figures[step].figures[plot];
@@ -113,25 +137,9 @@ export default class ResultStore {
     } catch (e) {
       console.error("Error handle progress data:", e);
     }
+
+    if (this.finished) {
+      this.root.activeResult.simulation.setIsRunning(false);
+    }
   });
-}
-
-const FIG_TITLES = [
-  "Species richness",
-  "Mean population density",
-  "Total population size",
-  "Phylogenetic diversity",
-  "Disturbance",
-  "Selective disturbance",
-  "Mean annual temperature",
-  "Economic loss",
-  "Cost of protecting",
-  "Variables through time",
-];
-
-function getFigTitle(index: number) {
-  if (index < FIG_TITLES.length) {
-    return FIG_TITLES[index];
-  }
-  return `Sp. ${index - FIG_TITLES.length}`;
 }

@@ -1,4 +1,5 @@
 import cors from "cors";
+import favicon from "serve-favicon";
 const express = require("@feathersjs/express");
 const feathers = require("@feathersjs/feathers");
 import socketio from "@feathersjs/socketio";
@@ -10,8 +11,7 @@ import services from "./services";
 import appHooks from "./app.hooks";
 import channels from "./channels";
 import type { HookContext as FeathersHookContext } from "@feathersjs/feathers";
-import type { Server, Socket } from "socket.io";
-import { staticDir } from "../paths";
+import paths from "../paths";
 // Don't remove this comment. It's needed to format import lines nicely.
 
 const app: Application = express(feathers());
@@ -20,35 +20,26 @@ export type HookContext<T = any> = {
 } & FeathersHookContext<T>;
 
 // Enable CORS and body parsing
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(favicon(paths.favicon));
 // Host the public folder
-app.use("/", express.static(staticDir));
+app.use("/", express.static(paths.static));
 
 // Set up Plugins and providers
 // app.configure(express.rest());
 // app.configure(socketio());
 // Configure Socket.io real-time APIs
 app.configure(
-  socketio(
-    {
-      serveClient: false,
-      cors: {
-        // origin: "http://localhost:3000",
-        origin: "*", // For Live Share
-        methods: ["GET", "POST"],
-      },
+  socketio({
+    serveClient: false,
+    cors: {
+      // origin: "http://localhost:3000",
+      origin: "*", // For Live Share
+      methods: ["GET", "POST"],
     },
-    (io: Server) => {
-      io.on("connection", function (socket: Socket) {
-        // Forward progress events from python to feathers progress service
-        // socket.onAny((eventName: string, ...args: any[]) => {
-        //   console.log(`!!!! '${eventName}':`, args);
-        // });
-      });
-    }
-  )
+  })
 );
 
 // Configure other middleware (see `middleware/index.ts`)

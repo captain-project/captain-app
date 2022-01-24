@@ -43,9 +43,10 @@ async def on_message(data):
         return
 
     if msg_type == "sim:run":
+        await emit("progress", "sim:run", data["data"])
+
         sim_file = captain_api.init_simulated_system(**data["data"]["init"])
         # print(flush=True)
-
 
         progress_items = []
         # job_id = data["data"]["id"]

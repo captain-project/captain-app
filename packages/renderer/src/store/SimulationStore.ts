@@ -30,16 +30,18 @@ export default class SimulationStore {
     });
   }
 
-  handleMessage = action((message: Message) => {
-    // if (message.type === "sim:init") {
-    //   this.initiating = false;
-    //   this.initiated = true;
-    //   this.file = message.data;
-    //   console.log("Simulation initiated");
-    // } else
-    if (message.type === "sim:run") {
-      this.isRunning = false;
+  handleMessage = action(
+    (service: string, data: { type: string; data?: any }) => {
+      if (service === "progress") {
+        if (data.type === "sim:run") {
+          this.isRunning = false;
+        }
+      }
     }
+  );
+
+  setIsRunning = action((value: boolean) => {
+    this.isRunning = value;
   });
 
   // init = action(() => {

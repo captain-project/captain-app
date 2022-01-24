@@ -6,9 +6,20 @@ export interface Message {
 
 export type MessageHandler = (m: Message) => void;
 
-export interface Progress {
+export interface ProgressData {
   type: string;
   data?: object | string | number;
+}
+export interface SimulationInput {
+  init: {
+    n_species: number;
+    grid_size: number;
+    cell_capacity: number;
+  };
+  run: {
+    num_steps: number;
+    dispersal_rate: number;
+  };
 }
 
 export interface SimulationProgressData {
@@ -20,4 +31,10 @@ export interface SimulationProgressData {
   thumbnailUrl?: string;
 }
 
-export type OptimizedSimulationProgressData = Required<SimulationProgressData>;
+export interface OptimizedSimulationProgressData
+  extends Required<SimulationProgressData> {
+  progressCount?: number;
+  progressTotal?: number;
+}
+
+export type SimProgressData = Required<OptimizedSimulationProgressData>;
