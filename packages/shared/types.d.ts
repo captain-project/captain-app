@@ -6,9 +6,30 @@ export interface Message {
 
 export type MessageHandler = (m: Message) => void;
 
+export type PolicyResult = {
+  simulation: number;
+  reward: number;
+  protected_cells: number;
+  budget_left: number;
+  time_last_protect: number;
+  avg_cost: number;
+  extant_sp: number;
+  extant_sp_value: number;
+  extant_sp_pd: number;
+  species_loss: number;
+  value_loss: number;
+  pd_loss: number;
+};
 export interface ProgressData {
-  type: string;
+  type: "simulation" | "policy" | "random-policy" | "test" | "stdout";
+  status: "start" | "progress" | "finished";
   data?: object | string | number;
+}
+
+export interface PolicyProgressData extends ProgressData {
+  type: "policy";
+  status: "progress";
+  data: PolicyResult;
 }
 export interface SimulationInput {
   init: {

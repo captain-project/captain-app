@@ -1,9 +1,9 @@
 import React from "react";
+import type { PropsWithChildren } from "react";
 import {
   Box,
   Grid,
   Button,
-  HStack,
   Select,
   FormControl,
   FormLabel,
@@ -12,12 +12,56 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
-  Heading,
+  HStack,
+  VStack,
 } from "@chakra-ui/react";
+import type { FormControlProps, NumberInputProps } from "@chakra-ui/react";
 import { observer } from "mobx-react";
 import { useStore } from "../store";
 import GridHeader from "./GridHeader";
 import Test from "./Test";
+import { policies } from "../store/PolicyStore";
+import type { PolicyValue } from "../store/PolicyStore";
+
+type NumberInputFormProps = Omit<
+  NumberInputProps & FormControlProps,
+  "onChange"
+> & {
+  label: string;
+  onChange: (value: number) => void;
+};
+
+const NumberInputForm = ({
+  label,
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  step = 1,
+  ...props
+}: PropsWithChildren<NumberInputFormProps>) => {
+  return (
+    <FormControl as={HStack} spacing={2} justify="space-between" {...props}>
+      <FormLabel>{label}</FormLabel>
+      <NumberInput
+        size="sm"
+        w="200px"
+        maxW="50%"
+        max={max}
+        min={min}
+        step={step}
+        value={value}
+        onChange={(_, value) => onChange(value)}
+      >
+        <NumberInputField />
+        <NumberInputStepper>
+          <NumberIncrementStepper />
+          <NumberDecrementStepper />
+        </NumberInputStepper>
+      </NumberInput>
+    </FormControl>
+  );
+};
 
 export default observer(function Input() {
   const store = useStore();
@@ -25,115 +69,91 @@ export default observer(function Input() {
   return (
     <>
       <GridHeader label="Input" />
-      <Box p={2}>
-        <FormControl>
-          <Grid templateColumns="3fr 1fr" gap={2}>
-            <FormLabel htmlFor="num-species" w="100%">
-              Number of species
-            </FormLabel>
-            <NumberInput
-              size="sm"
-              max={50}
-              min={5}
-              value={store.activeResult.simulation.numSpecies}
-              onChange={(_, value) =>
-                store.activeResult.simulation.setNumSpecies(value)
-              }
-            >
-              <NumberInputField id="num-species" />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
+      <VStack p={2} spacing={2}>
+        <NumberInputForm
+          label="Number of species"
+          min={5}
+          max={50}
+          value={store.activeResult.simulation.numSpecies}
+          onChange={(value) => {
+            store.activeResult.simulation.setNumSpecies(value);
+          }}
+        />
+        <NumberInputForm
+          label="Grid size"
+          min={10}
+          max={100}
+          value={store.activeResult.simulation.gridSize}
+          onChange={(value) => {
+            store.activeResult.simulation.setGridSize(value);
+          }}
+        />
+        <NumberInputForm
+          label="Cell capacity"
+          min={5}
+          max={60}
+          value={store.activeResult.simulation.cellCapacity}
+          onChange={(value) => {
+            store.activeResult.simulation.setCellCapacity(value);
+          }}
+        />
+        <NumberInputForm
+          label="Num steps"
+          min={1}
+          max={20}
+          value={store.activeResult.simulation.numSteps}
+          onChange={(value) => {
+            store.activeResult.simulation.setNumSteps(value);
+          }}
+        />
+        <NumberInputForm
+          label="Dispersal rate"
+          min={0}
+          max={1}
+          step={0.1}
+          value={store.activeResult.simulation.dispersalRate}
+          onChange={(value) => {
+            store.activeResult.simulation.setDispersalRate(value);
+          }}
+        />
 
-            <FormLabel htmlFor="grid-size">Grid size</FormLabel>
-            <NumberInput
-              size="sm"
-              max={100}
-              min={10}
-              value={store.activeResult.simulation.gridSize}
-              onChange={(_, value) =>
-                store.activeResult.simulation.setGridSize(value)
-              }
-            >
-              <NumberInputField id="grid-size" />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-            <FormLabel htmlFor="cell-capacity">Cell capacity</FormLabel>
-            <NumberInput
-              size="sm"
-              max={60}
-              min={5}
-              value={store.activeResult.simulation.cellCapacity}
-              onChange={(_, value) =>
-                store.activeResult.simulation.setCellCapacity(value)
-              }
-            >
-              <NumberInputField id="cell-capacity" />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-            <FormLabel htmlFor="num-steps">Num steps</FormLabel>
-            <NumberInput
-              size="sm"
-              max={20}
-              min={1}
-              value={store.activeResult.simulation.numSteps}
-              onChange={(_, value) =>
-                store.activeResult.simulation.setNumSteps(value)
-              }
-            >
-              <NumberInputField id="num-steps" />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-            <FormLabel htmlFor="dispersal-rate">Dispersal rate</FormLabel>
-            <NumberInput
-              size="sm"
-              max={1}
-              step={0.1}
-              min={0}
-              value={store.activeResult.simulation.dispersalRate}
-              onChange={(_, value) =>
-                store.activeResult.simulation.setDispersalRate(value)
-              }
-            >
-              <NumberInputField id="dispersal-rate" />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </Grid>
-
-          <Select value="No policy" onChange={(value) => {}}>
-            <option value="No policy">No policy</option>
-            <option value="Random">Random</option>
-            <option value="Random">Random</option>
-            <option value="Random">Random</option>
-            <option value="Random">Random</option>
-            <option value="Random">Random</option>
-            <option value="Random">Random</option>
-          </Select>
-
-          <Button
-            isLoading={store.activeResult.simulation.isRunning}
-            onClick={() => store.activeResult.simulation.run()}
+        <FormControl as={HStack} spacing={2} justify="space-between">
+          <FormLabel>Policy</FormLabel>
+          <Select
+            size="sm"
+            w="200px"
+            maxW="50%"
+            value={store.activeResult.policy.policy}
+            onChange={(e) => {
+              store.activeResult.policy.setPolicy(
+                e.target.value as PolicyValue
+              );
+            }}
           >
-            Run simulation
-          </Button>
-
-          <Test />
+            {policies.map(({ value, name }) => (
+              <option key={value} value={value}>
+                {name}
+              </option>
+            ))}
+          </Select>
         </FormControl>
-      </Box>
+
+        <Button
+          isLoading={store.activeResult.simulation.isRunning}
+          onClick={() => store.activeResult.simulation.run()}
+        >
+          Run simulation
+        </Button>
+
+        <Button
+          isLoading={store.activeResult.policy.isRunning}
+          onClick={() => store.activeResult.policy.run()}
+        >
+          Run policy
+        </Button>
+
+        <Test />
+      </VStack>
     </>
   );
 });

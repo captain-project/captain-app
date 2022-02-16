@@ -2,11 +2,9 @@ import { makeObservable, observable, action, computed } from "mobx";
 import type RootStore from "./RootStore";
 import SimulationStore from "./SimulationStore";
 import { range } from "../utils";
-import type {
-  OptimizedSimulationProgressData,
-  SimProgressData,
-} from "/shared/types";
+import type { ProgressData, SimProgressData } from "/shared/types";
 import { FIG_TITLES, getFigTitle } from "../utils/figures";
+import PolicyStore from "./PolicyStore";
 
 export type Figure = {
   title: string;
@@ -30,10 +28,12 @@ export default class ResultStore {
   progressTotal = 0;
   figures: Step[] = [];
   simulation: SimulationStore;
+  policy: PolicyStore;
   consoleOutput = "";
 
   constructor(private root: RootStore, public name: string) {
     this.simulation = new SimulationStore(root);
+    this.policy = new PolicyStore(root);
     this.progressTotal = this.numFigures;
     this.initFigures();
 
@@ -97,23 +97,25 @@ export default class ResultStore {
     }
   }
 
-  handleMessage = action(
-    (service: string, data: { type: string; data?: any }) => {
-      this.consoleOutput += JSON.stringify(data) + "\n";
-
-      if (service === "progress") {
-        if (data.type === "plot:progress") {
-          this.handleProgressData(data.data);
-        } else if (data.type === "plot:finished") {
-          // this.finished = true;
-        } else if (data.type.startsWith("sim")) {
-          this.simulation.handleMessage(data);
-        }
-      }
+  handleMessage = action((service: string, data: ProgressData) => {
+    if (data.type === "stdout") {
+      this.consoleOutput += JSON.stringify(data.data) + "\n";
+      return;
     }
-  );
 
-  handleProgressData = action((data: SimProgressData) => {
+    this.simulation.handleMessage(service, data);
+    this.policy.handleMessage(service, data);
+
+    if (
+      service === "progress" &&
+      data.type === "simulation" &&
+      data.status === "progress"
+    ) {
+      this.handleSimulationProgressData(data.data as SimProgressData);
+    }
+  });
+
+  handleSimulationProgressData = action((data: SimProgressData) => {
     const {
       step,
       plot,

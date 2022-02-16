@@ -6,6 +6,7 @@ import feathersApp from "./server";
 import logger from "./server/logger";
 import type { Message } from "/shared/types";
 
+console.log("..................");
 const pythonPath = join(app.getAppPath(), "python");
 console.log(`API created! Python path: '${pythonPath}'`);
 
@@ -27,10 +28,6 @@ feathersApp.listen(port).then((server) => {
 
 feathersApp.service("messages").on("created", async (message: Message) => {
   console.log("Api got message:", message);
-
-  if (message.type === "test:foo") {
-    console.log("Test foo...");
-  }
 });
 
 export class PythonClient {
@@ -42,10 +39,10 @@ export class PythonClient {
     });
 
     this.proc.stdout.on("data", (data) => {
-      console.log(`python stdout: ${data.toString()}`);
-      // feathersApp
-      //   .service("progress")
-      //   .create({ type: "python-stdout", data: data.toString() });
+      // console.log(`python stdout: ${data.toString()}`);
+      feathersApp
+        .service("progress")
+        .create({ type: "stdout", status: "progress", data: data.toString() });
     });
 
     const stderrChunks: any = [];
@@ -71,5 +68,3 @@ export default {
     pythonClient.kill();
   },
 };
-
-console.log("...");

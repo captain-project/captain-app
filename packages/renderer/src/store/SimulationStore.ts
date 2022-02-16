@@ -1,6 +1,6 @@
 import { makeObservable, observable, action } from "mobx";
 import type RootStore from "./RootStore";
-import type { Message } from "./Socket";
+import type { ProgressData } from "/shared/types";
 
 export default class SimulationStore {
   // initiating = false;
@@ -30,15 +30,11 @@ export default class SimulationStore {
     });
   }
 
-  handleMessage = action(
-    (service: string, data: { type: string; data?: any }) => {
-      if (service === "progress") {
-        if (data.type === "sim:run") {
-          this.isRunning = false;
-        }
-      }
-    }
-  );
+  handleMessage = action((service: string, data: ProgressData) => {
+    if (service !== "progress" || data.type !== "simulation") return;
+
+    if (data.status === "finished") this.isRunning = false;
+  });
 
   setIsRunning = action((value: boolean) => {
     this.isRunning = value;
@@ -69,7 +65,7 @@ export default class SimulationStore {
     } = this;
 
     this.root.send({
-      type: "sim:run",
+      type: "simulation",
       data: {
         init: {
           n_species,

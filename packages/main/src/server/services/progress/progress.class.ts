@@ -50,7 +50,8 @@ export class Progress implements ServiceMethods<Data> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async get(id: Id, params?: Params): Promise<Data> {
     return {
-      type: "progress-dummy-type",
+      type: "test",
+      status: "progress",
       data: { id },
     };
   }
@@ -60,7 +61,11 @@ export class Progress implements ServiceMethods<Data> {
     // Optimize svg and add thumbnails
     console.log(`progress:create '${data.type}'`);
 
-    if (data.type === "sim:run") {
+    if (data.type !== "simulation") {
+      return data;
+    }
+
+    if (data.status === "start") {
       const simData = data.data as Pick<SimulationState, "init" | "run">;
       const {
         init: { n_species: numSpecies },
@@ -73,7 +78,7 @@ export class Progress implements ServiceMethods<Data> {
       });
     }
 
-    if (data.type === "plot:progress") {
+    if (data.status === "progress") {
       const _data = (data.data = await optimizePlotData(
         data.data as SimulationProgressData
       ));
@@ -102,6 +107,10 @@ export class Progress implements ServiceMethods<Data> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async remove(id: NullableId, params?: Params): Promise<Data> {
-    return { id };
+    return {
+      type: "test",
+      status: "progress",
+      data: { id },
+    };
   }
 }

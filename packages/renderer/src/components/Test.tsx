@@ -6,8 +6,7 @@ import app from "../store/client";
 export default observer(function Test() {
   const onClickTest = async () => {
     const message = {
-      // type: "test:optimizePlotData",
-      type: "test:python",
+      type: "test",
     };
     console.log("Testing:", message);
     await app.service("messages").create(message);
