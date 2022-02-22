@@ -56,11 +56,35 @@ def run_policy():
     print(f"Run policy...")
     captain_api.run_policy(**data)
 
+def gen():
+    values = []
+    for i in range(3):
+        yield { "status": "running", "progress": i }
+        values.append(i)
+    yield { "status": "done", "data": values }
+    #return values
+
+def test_yield_with_return():
+    g = gen()
+    for v in g:
+        if "status" in v and v["status"] == "done":
+            print("Done:", v)
+        else:
+            print(v)
+
+    try:
+        next(g)
+    except StopIteration as ret:
+        print("Return value:", ret.value)
+    print("done!")
+
+
 if __name__ == "__main__":
-    run_policy()
+    # run_policy()
     # run_simulation()
     # result = test_conditional_yield()
     # print(f"Result: {type(result)} {result}")
     # print("With yield...")
     # for value in run_something_with_progress():
     #     print(value)
+    test_yield_with_return()

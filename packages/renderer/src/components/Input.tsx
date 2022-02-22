@@ -20,8 +20,8 @@ import { observer } from "mobx-react";
 import { useStore } from "../store";
 import GridHeader from "./GridHeader";
 import Test from "./Test";
-import { policies } from "../store/PolicyStore";
-import type { PolicyValue } from "../store/PolicyStore";
+import { policies } from "../store/SimulationStore";
+import type { PolicyValue } from "../store/SimulationStore";
 
 type NumberInputFormProps = Omit<
   NumberInputProps & FormControlProps,
@@ -97,11 +97,22 @@ export default observer(function Input() {
             store.activeResult.simulation.setCellCapacity(value);
           }}
         />
+      </VStack>
+
+      <Button
+        isDisabled
+        isLoading={store.activeResult.simulation.isRunning}
+        // onClick={() => store.activeResult.simulation.init()}
+      >
+        Init system
+      </Button>
+
+      <VStack p={2} spacing={2}>
         <NumberInputForm
-          label="Num steps"
+          label="Time steps"
           min={1}
           max={20}
-          value={store.activeResult.simulation.numSteps}
+          value={store.activeResult.simulation.numTimeSteps}
           onChange={(value) => {
             store.activeResult.simulation.setNumSteps(value);
           }}
@@ -123,9 +134,9 @@ export default observer(function Input() {
             size="sm"
             w="200px"
             maxW="50%"
-            value={store.activeResult.policy.policy}
+            value={store.activeResult.simulation.policy}
             onChange={(e) => {
-              store.activeResult.policy.setPolicy(
+              store.activeResult.simulation.setPolicy(
                 e.target.value as PolicyValue
               );
             }}
@@ -143,13 +154,6 @@ export default observer(function Input() {
           onClick={() => store.activeResult.simulation.run()}
         >
           Run simulation
-        </Button>
-
-        <Button
-          isLoading={store.activeResult.policy.isRunning}
-          onClick={() => store.activeResult.policy.run()}
-        >
-          Run policy
         </Button>
 
         <Test />

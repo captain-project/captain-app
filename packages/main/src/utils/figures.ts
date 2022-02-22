@@ -20,7 +20,7 @@ export function getFigTitle(index: number) {
 
 interface FigData {
   numSpecies: number;
-  numSteps: number;
+  numTimeSteps: number;
 }
 
 export function getNumFiguresPerStep({
@@ -31,7 +31,7 @@ export function getNumFiguresPerStep({
 
 export function getNumFiguresTotal({
   numSpecies,
-  numSteps,
-}: Pick<FigData, "numSpecies" | "numSteps">) {
-  return getNumFiguresPerStep({ numSpecies }) * numSteps;
+  numTimeSteps,
+}: Pick<FigData, "numSpecies" | "numTimeSteps">) {
+  return getNumFiguresPerStep({ numSpecies }) * (numTimeSteps + 1);
 }

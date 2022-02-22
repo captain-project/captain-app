@@ -20,7 +20,7 @@ interface SimulationState {
     cell_capacity: number;
   };
   run: {
-    num_steps: number;
+    time_steps: number;
     dispersal_rate: number;
   };
   totalNumFigures: number;
@@ -59,9 +59,9 @@ export class Progress implements ServiceMethods<Data> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: Data, params?: Params): Promise<Data> {
     // Optimize svg and add thumbnails
-    console.log(`progress:create '${data.type}'`);
+    console.log(`progress:create '${data.type}:${data.status}'`);
 
-    if (data.type !== "simulation") {
+    if (data.type !== "plot") {
       return data;
     }
 
@@ -69,16 +69,21 @@ export class Progress implements ServiceMethods<Data> {
       const simData = data.data as Pick<SimulationState, "init" | "run">;
       const {
         init: { n_species: numSpecies },
-        run: { num_steps: numSteps },
+        run: { time_steps: numTimeSteps },
       } = simData;
+      const totalNumFigures = getNumFiguresTotal({ numSpecies, numTimeSteps });
       this.state.set(0, {
         ...simData,
-        totalNumFigures: getNumFiguresTotal({ numSpecies, numSteps }),
+        totalNumFigures,
         currentNumFigures: 0,
       });
+      console.log(
+        `Init progress service: numSpecies: ${numSpecies}, numTimeSteps: ${numTimeSteps}, totalNumFigures: ${totalNumFigures}`
+      );
     }
 
     if (data.status === "progress") {
+      console.log("Plot progress data:", data.data);
       const _data = (data.data = await optimizePlotData(
         data.data as SimulationProgressData
       ));
@@ -92,6 +97,7 @@ export class Progress implements ServiceMethods<Data> {
         _data.progressTotal = state.totalNumFigures;
       }
     }
+
     return data;
   }
 

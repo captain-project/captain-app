@@ -28,12 +28,10 @@ export default class ResultStore {
   progressTotal = 0;
   figures: Step[] = [];
   simulation: SimulationStore;
-  policy: PolicyStore;
   consoleOutput = "";
 
   constructor(private root: RootStore, public name: string) {
     this.simulation = new SimulationStore(root);
-    this.policy = new PolicyStore(root);
     this.progressTotal = this.numFigures;
     this.initFigures();
 
@@ -73,7 +71,8 @@ export default class ResultStore {
   }
 
   get numSteps() {
-    return this.simulation.numSteps;
+    // TODO: Clear? Or change backend?
+    return this.simulation.numTimeSteps + 1;
   }
 
   initFigures() {
@@ -99,16 +98,19 @@ export default class ResultStore {
 
   handleMessage = action((service: string, data: ProgressData) => {
     if (data.type === "stdout") {
-      this.consoleOutput += JSON.stringify(data.data) + "\n";
+      this.consoleOutput += data.data + "\n";
       return;
     }
 
+    if (service === "progress") {
+      console.log(`${data.type}: ${data.status}`);
+    }
+
     this.simulation.handleMessage(service, data);
-    this.policy.handleMessage(service, data);
 
     if (
       service === "progress" &&
-      data.type === "simulation" &&
+      data.type === "plot" &&
       data.status === "progress"
     ) {
       this.handleSimulationProgressData(data.data as SimProgressData);
@@ -116,6 +118,7 @@ export default class ResultStore {
   });
 
   handleSimulationProgressData = action((data: SimProgressData) => {
+    console.log("Plot progress:", data);
     const {
       step,
       plot,

@@ -21,7 +21,7 @@ export type PolicyResult = {
   pd_loss: number;
 };
 export interface ProgressData {
-  type: "simulation" | "policy" | "random-policy" | "test" | "stdout";
+  type: "plot" | "simulation" | "policy" | "random-policy" | "test" | "stdout";
   status: "start" | "progress" | "finished";
   data?: object | string | number;
 }

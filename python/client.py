@@ -44,7 +44,7 @@ async def on_message(data):
         return
 
     if msg_type == "simulation":
-        await emit("progress", {"type": "simulation", "status": "start", "data": data["data"]})
+        await emit("progress", {"type": "plot", "status": "start", "data": data["data"]})
 
         sim_file = captain_api.init_simulated_system(**data["data"]["init"])
         # print(flush=True)
@@ -67,7 +67,7 @@ async def on_message(data):
                     break
 
         async def captain_task():
-            for progress_item in captain_api.simulate_biodiv_env(sim_file=sim_file, **data["data"]["run"]):
+            for progress_item in captain_api.run_policy(sim_file=sim_file, **data["data"]["run"]):
                 # print(progress_type, progress_data, flush=True)
                 progress_items.append(progress_item)
                 await asyncio.sleep(0.001)
@@ -80,51 +80,6 @@ async def on_message(data):
         print("captain task finished!", flush=True)
         # TODO: Already emits a status finished event from above?
         # await emit("progress", { "type": "simulation", "status": "finished" })
-        return
-
-    if msg_type == "policy":
-        await emit("progress", {"type": "policy", "status": "start"})
-        data_for_random_policy = {**data["data"]}
-        data_for_random_policy["trainedModel"] = None
-        data_for_random_policy["obsMode"] = 0
-        data_for_random_policy["outFile"] = data_for_random_policy["outFileRandom"]
-
-        progress_items = []
-        # job_id = data["data"]["id"]
-        # TODO: Use dates as job ids and save output to folder with job id name
-
-        async def progress_task():
-            num_finished = 0
-            while True:
-                await asyncio.sleep(0.001)
-                while len(progress_items) > 0:
-                    item = progress_items.pop(0)
-                    # print(f"Progress task have {len(progress_items) + 1} items, processing {item}")
-                    if item["status"] == "finished":
-                        num_finished += 1
-                    else:
-                        await emit("progress", item)
-                if num_finished == 2:
-                    break
-
-        async def run_random_policy():
-            for progress_item in captain_api.run_policy(**data_for_random_policy):
-                progress_item["type"] = "random-policy"
-                progress_items.append(progress_item)
-                await asyncio.sleep(0.001)
-
-        async def run_policy():
-            for progress_item in captain_api.run_policy(**data["data"]):
-                progress_items.append(progress_item)
-                await asyncio.sleep(0.001)
-
-        await asyncio.gather(
-            progress_task(),
-            run_random_policy(),
-            run_policy(),
-        )
-
-        await emit("progress", {"type": "policy", "status": "finished"})
         return
 
     await emit("progress", {"type": "error", "status": "error", "message": f"Type '{msg_type}' not recognized"})

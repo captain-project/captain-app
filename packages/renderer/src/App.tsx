@@ -52,9 +52,9 @@ export default function App() {
       <GridItem borderColor="gray.300" borderWidth={1}>
         <Output />
       </GridItem>
-      {/* <GridItem borderColor="gray.300" borderWidth={1} colSpan={2}>
+      <GridItem borderColor="gray.300" borderWidth={1} colSpan={2}>
         <Console />
-      </GridItem> */}
+      </GridItem>
     </Grid>
   );
 }
