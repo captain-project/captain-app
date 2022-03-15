@@ -1,14 +1,28 @@
 import captain as cn
 from functools import lru_cache
 import numpy as np
+from pathlib import Path
 
 # int64 not json serializable
 def int64_to_int(value):
     return int(value) if isinstance(value, np.integer) else value
 
+def get_initiated_systems():
+    return [p.name for p in Path("./static/init").glob("sp*_gs*_cc*")]
+
+def get_sim_file(n_species, grid_size, cell_capacity):
+    folder_name = f"sp{n_species}_gs{grid_size}_cc{cell_capacity}"
+    p = Path("./static/init") / folder_name / "pickles"
+    # Example sim_file: {out_dir}/pickles/init_cell_4582_c20_s5_d0.3_t0.25.pkl
+    sim_file = list(p.glob("init_cell_*"))[0]
+    return sim_file
+
 @lru_cache
-def init_simulated_system(*args, **kwargs):
-    sim_file = cn.init_simulated_system(out_dir='./static/sim_data', **kwargs)
+def init_simulated_system(n_species, grid_size, cell_capacity):
+    folder_name = f"sp{n_species}_gs{grid_size}_cc{cell_capacity}"
+    sim_file = cn.init_simulated_system(out_dir=f'./static/init/{folder_name}', n_species=n_species, grid_size=grid_size, cell_capacity=cell_capacity)
+    # Example sim_file: {out_dir}/pickles/init_cell_4582_c20_s5_d0.3_t0.25.pkl
+    # cell_file_pkl from captain-dev/biodivinit/SimulatorInit.py: "init_cell_{rseed}_c{grid_size}_s{n_species}_d{dispersal_rate}_t{death_at_climate_boundary}"
     return sim_file
 
 def simulate_biodiv_env(*args, num_steps=1, **kwargs):

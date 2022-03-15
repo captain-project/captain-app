@@ -1,6 +1,7 @@
 import socketio
 import captain_api
 import asyncio
+from pathlib import Path
 
 sio = socketio.AsyncClient(logger=False, engineio_logger=False)
 
@@ -8,10 +9,12 @@ sio = socketio.AsyncClient(logger=False, engineio_logger=False)
 async def emit(service, data):
     return await sio.emit("create", (service, data))
 
-
 @sio.event
 async def connect():
     print("Python connected!")
+    Path("./static/init").mkdir(exist_ok=True)
+    initiated_systems = captain_api.get_initiated_systems()
+    await emit("progress", dict(type="init", status="finished", data=initiated_systems))
 
 
 @sio.event
@@ -43,10 +46,22 @@ async def on_message(data):
         await emit("progress", {"type": "test", "status": "finished"})
         return
 
+    if msg_type == "init":
+        await emit("progress", {"type": "init", "status": "start", "data": data})
+
+        if "data" in data:
+            captain_api.init_simulated_system(**data["data"])
+            print("captain init finished!", flush=True)
+
+        initiated_systems = captain_api.get_initiated_systems()
+        await emit("progress", dict(type="init", status="finished", data=initiated_systems))
+        return
+
     if msg_type == "simulation":
         await emit("progress", {"type": "plot", "status": "start", "data": data["data"]})
 
-        sim_file = captain_api.init_simulated_system(**data["data"]["init"])
+        # sim_file = captain_api.init_simulated_system(**data["data"]["init"])
+        sim_file = captain_api.get_sim_file(**data["data"]["init"])
         # print(flush=True)
 
         progress_items = []

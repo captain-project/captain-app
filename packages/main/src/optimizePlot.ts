@@ -19,9 +19,9 @@ export async function optimizeSVG(inputPath: string, outputPath?: string) {
       await fs.writeFile(outputPath ?? inputPath, result.data);
       return;
     }
-    throw new Error(`SVGO error: ${result.error}`);
+    throw new Error(`SVGO error on '${inputPath}': ${result.error}`);
   } catch (err: any) {
-    console.error("Error optimizeSVG:", err);
+    console.error(`SVGO error on '${inputPath}'`, err);
   }
 }
 

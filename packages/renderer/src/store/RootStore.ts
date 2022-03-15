@@ -23,6 +23,13 @@ export default class RootStore {
       // console.log("Progress:", progress);
       this.activeResult?.handleMessage("progress", progress);
     });
+
+    this.send({ type: "init" });
+    /**
+     * js and python clients connects to feathers.js server
+     * js sends message init, expects init finished from python
+     * python may not be available on js init, but will send when connected anyway
+     */
   }
 
   setTabIndex = action((value: number) => (this.tabIndex = value));

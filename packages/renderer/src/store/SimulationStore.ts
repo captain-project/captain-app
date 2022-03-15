@@ -22,11 +22,13 @@ simulation	reward	protected_cells	budget_left	time_last_protect	avg_cost	extant_
 */
 export type PolicyValue = typeof policies[number]["value"];
 export default class SimulationStore {
-  // initiating = false;
-  // initiated = false;
+  // status
+  isInitiating = false;
+  // isInitiated = false;
   isRunning = false;
 
   // init params
+  initiatedSystems: string[] = [];
   numSpecies = 5;
   gridSize = 20;
   cellCapacity = 25;
@@ -42,9 +44,10 @@ export default class SimulationStore {
 
   constructor(private root: RootStore) {
     makeObservable(this, {
-      // initiated: observable,
-      // initiating: observable,
+      isInitiating: observable,
+      isInitiated: computed,
       isRunning: observable,
+      initiatedSystems: observable,
       numSpecies: observable,
       gridSize: observable,
       cellCapacity: observable,
@@ -91,6 +94,12 @@ export default class SimulationStore {
   handleMessage = action((service: string, data: ProgressData) => {
     if (service !== "progress") return;
 
+    if (data.type === "init" && data.status === "finished") {
+      // const sim_file = data.data;
+      console.log("Init finished:", data);
+      this.initiatedSystems = data.data as string[];
+    }
+
     if (data.type === "policy" && data.status === "progress") {
       const d = data as PolicyProgressData;
       this.results = [...this.results, d.data];
@@ -99,23 +108,29 @@ export default class SimulationStore {
     if (data.status === "finished") this.isRunning = false;
   });
 
+  get isInitiated() {
+    // f"sp{n_species}_gs{grid_size}_cc{cell_capacity}"
+    const folderName = `sp${this.numSpecies}_gs${this.gridSize}_cc${this.cellCapacity}`;
+    return this.initiatedSystems.includes(folderName);
+  }
+
   setIsRunning = action((value: boolean) => {
     this.isRunning = value;
   });
 
-  // init = action(() => {
-  //   const {
-  //     numSpecies: n_species,
-  //     gridSize: grid_size,
-  //     cellCapacity: cell_capacity,
-  //   } = this;
+  init = action(() => {
+    const {
+      numSpecies: n_species,
+      gridSize: grid_size,
+      cellCapacity: cell_capacity,
+    } = this;
 
-  //   this.root.send({
-  //     type: "sim:init",
-  //     data: { n_species, grid_size, cell_capacity },
-  //   });
-  //   this.initiating = true;
-  // });
+    this.root.send({
+      type: "init",
+      data: { n_species, grid_size, cell_capacity },
+    });
+    this.isInitiating = true;
+  });
 
   run = action(() => {
     const {

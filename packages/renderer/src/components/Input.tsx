@@ -100,9 +100,9 @@ export default observer(function Input() {
       </VStack>
 
       <Button
-        isDisabled
+        isDisabled={store.activeResult.simulation.isInitiated}
         isLoading={store.activeResult.simulation.isRunning}
-        // onClick={() => store.activeResult.simulation.init()}
+        onClick={() => store.activeResult.simulation.init()}
       >
         Init system
       </Button>
