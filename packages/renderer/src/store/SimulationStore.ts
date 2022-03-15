@@ -15,12 +15,23 @@ export const policies = [
   { value: "none", name: "None" },
 ] as const;
 
+export type PolicyValue = typeof policies[number]["value"];
+
+// rewardMode=0,  # "0: species loss; 1: sp value; 2: protected area"; 3: diversity loss (not yet tested)
+export const rewardModes = [
+  { value: 0, name: "species loss" },
+  { value: 1, name: "species value" },
+  { value: 2, name: "protected area" },
+  // { value: 3, name: "diversity loss" },
+] as const;
+
+export type RewardValue = typeof rewardModes[number]["value"];
+
 /**
  * Output
 simulation	reward	protected_cells	budget_left	time_last_protect	avg_cost	extant_sp	extant_sp_value	extant_sp_pd	species_loss	value_loss	pd_loss
 0	0.0	0	8.8	0	0	0.2	0.25023144867723884	0.39962853069605697	4.0	74.97685513227611	60.0371469303943
 */
-export type PolicyValue = typeof policies[number]["value"];
 export default class SimulationStore {
   // status
   isInitiating = false;
@@ -39,8 +50,20 @@ export default class SimulationStore {
   dispersalRate = 0.3;
   budget = 0.11;
   policy: PolicyValue = policies[0].value;
+  rewardMode: RewardValue = rewardModes[0].value;
 
   results: PolicyResult[] = [];
+
+  obsModeOptions: { [key: string]: number[] } = {
+    area: [5],
+    value: [4],
+    species: [1, 2],
+    speciesStatic: [1],
+    random: [1],
+    none: [1],
+  };
+
+  speciesObsMode = 1;
 
   constructor(private root: RootStore) {
     makeObservable(this, {
@@ -56,8 +79,25 @@ export default class SimulationStore {
       budget: observable,
       policy: observable,
       results: observable.ref,
+      obsMode: computed,
+      observePolicy: computed,
       policyParams: computed,
     });
+  }
+
+  get obsMode() {
+    const options = this.obsModeOptions[this.policy];
+    if (options.length === 1) {
+      return options[0];
+    }
+    return this.speciesObsMode;
+  }
+
+  get observePolicy() {
+    if (this.policy === "speciesStatic") {
+      return 2;
+    }
+    return 1;
   }
 
   get policyParams() {
@@ -68,9 +108,9 @@ export default class SimulationStore {
       rnd_seed: 123,
       time_steps: this.numTimeSteps,
       n_nodes: [4, 0],
-      obsMode: 5, // for area
-      rewardMode: 2,
-      observePolicy: 1,
+      obsMode: this.obsMode,
+      rewardMode: 2, // TODO
+      observePolicy: this.observePolicy,
       trainedModel: "./trained_models/area_d4_n4-0.log",
       // simDataDir: "./static/sim_data/pickles",
       outFile: "./static/policy.log",
@@ -137,11 +177,6 @@ export default class SimulationStore {
       numSpecies: n_species,
       gridSize: grid_size,
       cellCapacity: cell_capacity,
-      // file: sim_file,
-      numTimeSteps: num_steps,
-      dispersalRate: dispersal_rate,
-      budget,
-      policy,
     } = this;
 
     this.root.send({

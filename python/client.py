@@ -12,7 +12,6 @@ async def emit(service, data):
 @sio.event
 async def connect():
     print("Python connected!")
-    Path("./static/init").mkdir(exist_ok=True)
     initiated_systems = captain_api.get_initiated_systems()
     await emit("progress", dict(type="init", status="finished", data=initiated_systems))
 
@@ -82,7 +81,7 @@ async def on_message(data):
                     break
 
         async def captain_task():
-            for progress_item in captain_api.run_policy(sim_file=sim_file, **data["data"]["run"]):
+            for progress_item in captain_api.run_policy(sim_file=sim_file, run=data["data"]["run"], init=data["data"]["init"]):
                 # print(progress_type, progress_data, flush=True)
                 progress_items.append(progress_item)
                 await asyncio.sleep(0.001)
