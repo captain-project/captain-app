@@ -12,12 +12,12 @@ export const policies = [
   { value: "species", name: "Species" },
   { value: "speciesStatic", name: "Species (static)" },
   { value: "random", name: "Random" },
-  { value: "none", name: "None" },
+  { value: "none", name: "None" }, // zero budget
 ] as const;
 
 export type PolicyValue = typeof policies[number]["value"];
 
-// rewardMode=0,  # "0: species loss; 1: sp value; 2: protected area"; 3: diversity loss (not yet tested)
+// depends on policy, doesn't matter for policy random or none
 export const rewardModes = [
   { value: 0, name: "species loss" },
   { value: 1, name: "species value" },
@@ -26,6 +26,13 @@ export const rewardModes = [
 ] as const;
 
 export type RewardValue = typeof rewardModes[number]["value"];
+
+type InitiatedSystemValue = {
+  name: string;
+  numSpecies: number;
+  gridSize: number;
+  cellCapacity: number;
+};
 
 /**
  * Output
@@ -82,6 +89,7 @@ export default class SimulationStore {
       obsMode: computed,
       observePolicy: computed,
       policyParams: computed,
+      initiatedSystemsValues: computed,
     });
   }
 
@@ -108,10 +116,11 @@ export default class SimulationStore {
       rnd_seed: 123,
       time_steps: this.numTimeSteps,
       n_nodes: [4, 0],
+      resolution: 5, // must be divisors of gridSize
       obsMode: this.obsMode,
       rewardMode: 2, // TODO
       observePolicy: this.observePolicy,
-      trainedModel: "./trained_models/area_d4_n4-0.log",
+      trainedModel: "./trained_models/area_d4_n4-0.log", // {obsMode}_*_n{n_nodes}
       // simDataDir: "./static/sim_data/pickles",
       outFile: "./static/policy.log",
     };
@@ -138,6 +147,7 @@ export default class SimulationStore {
       // const sim_file = data.data;
       console.log("Init finished:", data);
       this.initiatedSystems = data.data as string[];
+      this.isInitiating = false;
     }
 
     if (data.type === "policy" && data.status === "progress") {
@@ -147,6 +157,27 @@ export default class SimulationStore {
 
     if (data.status === "finished") this.isRunning = false;
   });
+
+  get initiatedSystemsValues(): InitiatedSystemValue[] {
+    if (this.initiatedSystems.length === 0) {
+      return [];
+    }
+
+    const re = /sp(\d+)_gs(\d+)_cc(\d+)/;
+
+    return this.initiatedSystems
+      .map((name) => {
+        const match = name.match(re);
+        if (!match) return null;
+        return {
+          name,
+          numSpecies: parseInt(match[1]),
+          gridSize: parseInt(match[2]),
+          cellCapacity: parseInt(match[3]),
+        };
+      })
+      .filter(Boolean) as InitiatedSystemValue[];
+  }
 
   get isInitiated() {
     // f"sp{n_species}_gs{grid_size}_cc{cell_capacity}"

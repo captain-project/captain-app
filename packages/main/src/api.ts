@@ -6,7 +6,7 @@ import feathersApp from "./server";
 import logger from "./server/logger";
 import type { Message } from "/shared/types";
 
-console.log("........................");
+console.log(".......................................");
 const pythonPath = join(app.getAppPath(), "python");
 console.log(`API created! Python path: '${pythonPath}'`);
 

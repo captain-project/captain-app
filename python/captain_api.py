@@ -60,6 +60,7 @@ def run_policy(sim_file, run, init):
             observePolicy=run["observePolicy"], # recurrent monitoring, dynamic protection
             rewardMode=run["rewardMode"], # objective: minimize species loss
             # wd=run["simDataDir"],  # directory with pre-simulated systems
+            resolution=np.array([run["resolution"], run["resolution"]]), # resolution=np.array([5, 5]), # need to be divisors of grid size
             wd=None,
             plot_dir=output_folder,
             outfile=run["outFile"],

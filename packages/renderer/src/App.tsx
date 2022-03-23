@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Grid, GridItem } from "@chakra-ui/react";
+import { Grid, GridItem, chakra } from "@chakra-ui/react";
+import type { GridItemProps } from "@chakra-ui/react";
 import Output from "./components/Output";
 import Console from "./components/Console";
 import Input from "./components/Input";
@@ -38,23 +39,30 @@ import Input from "./components/Input";
 //   </Tabs>
 // );
 
+const Item = chakra(GridItem, {
+  baseStyle: {
+    borderColor: "gray.300",
+    borderWidth: 1,
+  },
+});
+
 export default function App() {
   return (
     <Grid
       h="100vh"
       bg="white"
-      //templateRows="2fr 1fr"
-      templateColumns="1fr 1fr"
+      templateColumns="1fr 2fr"
+      templateRows="1fr max-content"
     >
-      <GridItem borderColor="gray.300" borderWidth={1}>
+      <Item minH="67vh" maxH="100vh" overflow="scroll">
         <Input />
-      </GridItem>
-      <GridItem borderColor="gray.300" borderWidth={1}>
+      </Item>
+      <Item minH="67vh" maxH="100vh" overflow="scroll">
         <Output />
-      </GridItem>
-      <GridItem borderColor="gray.300" borderWidth={1} colSpan={2}>
+      </Item>
+      <Item maxH="33vh" minH={0} colSpan={2}>
         <Console />
-      </GridItem>
+      </Item>
     </Grid>
   );
 }

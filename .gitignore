@@ -4,6 +4,7 @@ dist
 *.local
 thumbs.db
 
+/build
 /python/tmp
 /python/static/*
 /python/trained_models/*

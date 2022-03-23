@@ -1,8 +1,6 @@
 import React from "react";
 import type { PropsWithChildren } from "react";
 import {
-  Box,
-  Grid,
   Button,
   Select,
   FormControl,
@@ -14,12 +12,32 @@ import {
   NumberDecrementStepper,
   HStack,
   VStack,
+  chakra,
+} from "@chakra-ui/react";
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+} from "@chakra-ui/react";
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableCaption,
 } from "@chakra-ui/react";
 import type { FormControlProps, NumberInputProps } from "@chakra-ui/react";
 import { observer } from "mobx-react";
 import { useStore } from "../store";
 import GridHeader from "./GridHeader";
-import Test from "./Test";
+// import Test from "./Test";
 import { policies } from "../store/SimulationStore";
 import type { PolicyValue } from "../store/SimulationStore";
 
@@ -63,13 +81,99 @@ const NumberInputForm = ({
   );
 };
 
+const HiglightedTr = chakra(Tr, {
+  baseStyle: {
+    "&:hover": {
+      backgroundColor: "gray.200",
+    },
+  },
+});
+
+const NumericTh = (props: any) => <Th isNumeric {...props} />;
+const NumericTd = (props: any) => <Td isNumeric {...props} />;
+
+const LoadSystem = observer(function LoadSystem({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const store = useStore();
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Load Initialized System</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Table variant="simple" size="sm">
+            <TableCaption>Load pre-initialized systems</TableCaption>
+            <Thead>
+              <Tr>
+                <NumericTh>Species</NumericTh>
+                <NumericTh>Grid size</NumericTh>
+                <NumericTh>Cell capacity</NumericTh>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {store.activeResult.simulation.initiatedSystemsValues.map(
+                (system) => (
+                  <HiglightedTr
+                    key={system.name}
+                    onClick={() => {
+                      const { simulation } = store.activeResult;
+                      simulation.setNumSpecies(system.numSpecies);
+                      simulation.setGridSize(system.gridSize);
+                      simulation.setCellCapacity(system.cellCapacity);
+                      onClose();
+                    }}
+                  >
+                    <NumericTd>{system.numSpecies}</NumericTd>
+                    <NumericTd>{system.gridSize}</NumericTd>
+                    <NumericTd>{system.cellCapacity}</NumericTd>
+                  </HiglightedTr>
+                )
+              )}
+            </Tbody>
+          </Table>
+        </ModalBody>
+
+        <ModalFooter>
+          <Button colorScheme="blue" onClick={onClose}>
+            Close
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+});
+
 export default observer(function Input() {
   const store = useStore();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <>
       <GridHeader label="Input" />
+
       <VStack p={2} spacing={2}>
+        <Button onClick={onOpen}>Load system</Button>
+        <div>or</div>
+        <Button
+          isDisabled={
+            store.activeResult.simulation.isInitiated ||
+            store.activeResult.simulation.isRunning
+          }
+          isLoading={store.activeResult.simulation.isInitiating}
+          onClick={() => store.activeResult.simulation.init()}
+        >
+          Init system
+        </Button>
+
+        <LoadSystem isOpen={isOpen} onClose={onClose} />
+
         <NumberInputForm
           label="Number of species"
           min={5}
@@ -98,14 +202,6 @@ export default observer(function Input() {
           }}
         />
       </VStack>
-
-      <Button
-        isDisabled={store.activeResult.simulation.isInitiated}
-        isLoading={store.activeResult.simulation.isRunning}
-        onClick={() => store.activeResult.simulation.init()}
-      >
-        Init system
-      </Button>
 
       <VStack p={2} spacing={2}>
         <NumberInputForm
@@ -156,7 +252,7 @@ export default observer(function Input() {
           Run simulation
         </Button>
 
-        <Test />
+        {/* <Test /> */}
       </VStack>
     </>
   );
