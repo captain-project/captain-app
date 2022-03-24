@@ -39,6 +39,7 @@ type FigureProps = SkeletonProps & {
   figure: FigureType;
   thumbnail?: boolean;
 };
+type HtmlSize = string | number | undefined;
 
 const Figure = observer(
   ({ width, height, maxW, maxH, figure, thumbnail, ...props }: FigureProps) => {
@@ -48,6 +49,8 @@ const Figure = observer(
 
     const url = thumbnail ? figure.thumbnailUrl : figure.url;
     const isLoaded = url !== "";
+    const w = (maxW as HtmlSize) ?? undefined;
+    const h = (maxH as HtmlSize) ?? undefined;
 
     return (
       <Skeleton
@@ -57,7 +60,7 @@ const Figure = observer(
         speed={speed}
         {...props}
       >
-        <ChakraImage htmlWidth={maxW} htmlHeight={maxH} src={url} />
+        <ChakraImage htmlWidth={w} htmlHeight={h} src={url} />
       </Skeleton>
     );
   }

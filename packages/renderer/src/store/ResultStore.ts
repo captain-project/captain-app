@@ -4,7 +4,6 @@ import SimulationStore from "./SimulationStore";
 import { range } from "../utils";
 import type { ProgressData, SimProgressData } from "/shared/types";
 import { FIG_TITLES, getFigTitle } from "../utils/figures";
-import PolicyStore from "./PolicyStore";
 
 export type Figure = {
   title: string;
