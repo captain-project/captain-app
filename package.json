@@ -23,11 +23,6 @@
     "npm": ">=8.1"
   },
   "main": "packages/main/dist/index.cjs",
-  "directories": {
-    "lib": "packages/main/src/server",
-    "test": "packages/main/test/",
-    "config": "packages/main/config/"
-  },
   "types": "lib/",
   "scripts": {
     "build": "node scripts/build.js",
