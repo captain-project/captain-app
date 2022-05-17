@@ -13,6 +13,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         repository: captain-project/captain-dev
+        ref: main
         path: captain-dev
     - name: Set up Python
       uses: actions/setup-python@v3
