@@ -33,10 +33,18 @@ feathersApp.service("messages").on("created", async (message: Message) => {
 export class PythonClient {
   proc: ChildProcessWithoutNullStreams;
 
-  constructor() {
-    this.proc = spawn("python", ["client.py"], {
-      cwd: pythonPath,
-    });
+  constructor(native = false) {
+    if (!native) {
+      console.log(`Spawn python client.py...`);
+      this.proc = spawn("python", ["client.py"], {
+        cwd: pythonPath,
+      });
+    } else {
+      console.log(`Spawn native python client...`);
+      this.proc = spawn("../dist/client/client", [], {
+        cwd: pythonPath,
+      });
+    }
 
     this.proc.stdout.on("data", (data) => {
       // console.log(`python stdout: ${data.toString()}`);
@@ -61,7 +69,7 @@ export class PythonClient {
   }
 }
 
-const pythonClient = new PythonClient();
+const pythonClient = new PythonClient(true);
 
 export default {
   dispose() {
