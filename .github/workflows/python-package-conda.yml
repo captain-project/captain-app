@@ -10,11 +10,6 @@ jobs:
       max-parallel: 5
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        repository: captain-project/captain-project
-        ref: main
-        path: captain-project
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
@@ -25,12 +20,22 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        cd captain-project
-        conda env create -n captain --file environment.yml
+        conda env create -n captain
+        conda activate captain
+        conda install numba numpy pandas matplotlib seaborn
+        pip install dendropy baltic gym
         pip install build pyinstaller python-socketio aiohttp
+    - uses: actions/checkout@v3
+      with:
+        repository: captain-project/captain-project
+        ref: main
+        path: captain-project
+    - name: Install Captain library
+      run: |
+        cd captain-project
         python -m build
         pip install -e .
-        cd ..
+        cd ..        
     - name: Checkout app
       uses: actions/checkout@v3
     - name: Run pyinstaller
