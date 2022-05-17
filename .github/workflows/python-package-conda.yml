@@ -5,9 +5,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 5
+      matrix:
+        os: ["windows-latest", "macos-latest", "ubuntu-latest"]
+      max-parallel: 3
 
     steps:
     - name: Set up Python
@@ -46,3 +49,8 @@ jobs:
       run: npm i
     - name: Build Electron app
       run: npm run compile
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.0.0
+      with:
+        name: package-${{ matrix.os }}
+        path: dist
