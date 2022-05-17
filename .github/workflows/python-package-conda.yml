@@ -12,9 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        repository: captain-project/captain-dev
+        repository: captain-project/captain-project
         ref: main
-        path: captain-dev
+        path: captain-project
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
@@ -25,7 +25,7 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        cd captain-dev
+        cd captain-project
         conda env create -n captain --file environment.yml
         pip install build pyinstaller python-socketio aiohttp
         python -m build
