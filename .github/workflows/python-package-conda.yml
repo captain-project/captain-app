@@ -1,0 +1,39 @@
+name: Build Python
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repo: captain-project/captain-dev
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        conda env update --file environment.yml --name base
+        pip install build pyinstaller python-socketio aiohttp
+        python -m build
+        pip install -e .
+    - name: Checkout app
+      uses: actions/checkout@v3
+    - name: Run pyinstaller
+      run: |
+        pyinstaller python/client.py
+    - name: Install NPM
+      uses: actions/setup-node@v3
+    - run: |
+        npm i
+        npm run watch
