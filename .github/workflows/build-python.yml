@@ -1,4 +1,4 @@
-name: Build app
+name: Build python
 
 on:
   workflow_dispatch:
@@ -17,46 +17,53 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.9
+
     - if: startsWith(matrix.os, 'windows')
       name: Install Miniconda
       uses: conda-incubator/setup-miniconda@v2.1.1
+
     - name: Add conda to system path
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
+
     - name: Install Python dependencies
       run: |
         conda install numba numpy pandas matplotlib seaborn
         pip install dendropy baltic gym
         pip install build pyinstaller python-socketio aiohttp
+
     - name: Checkout captain-project
       uses: actions/checkout@v3
       with:
         repository: captain-project/captain-project
         ref: main
         path: captain-project
+
     - name: Install captain-project
       run: |
         cd captain-project
         python -m build
         pip install -e .
-        cd ..        
+        cd ..
+
     - name: Checkout captain-app
       uses: actions/checkout@v3
+
     - name: Run pyinstaller
       run: |
         pyinstaller python/client.py
-    - name: Setup Node
-      uses: actions/setup-node@v3
-    - name: Install Node dependencies
-      run: npm i
-    - name: Build Electron app
-      run: npm run compile
+
     - name: Compress dist folder
-      run: zip -r dist.zip dist
+      uses: a7ul/tar-action@v1.1.0
+      with:
+        command: c
+        files: dist
+        outPath: dist.tar.gz
+
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
         name: package-${{ matrix.os }}
-        path: dist.zip
+        path: dist.tar.gz
         retention-days: 1

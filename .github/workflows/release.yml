@@ -1,15 +1,22 @@
 name: Release
+
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '**.md'
-      - '**.spec.js'
-      - '.idea'
-      - '.gitignore'
-      - '.github/**'
-      - '!.github/workflows/release.yml'
+  workflow_run:
+    workflows: [Build python]
+    types: [completed]
+
+  workflow_dispatch:
+
+#   push:
+#     branches:
+#       - main
+#     paths-ignore:
+#       - '**.md'
+#       - '**.spec.js'
+#       - '.idea'
+#       - '.gitignore'
+#       - '.github/**'
+#       - '!.github/workflows/release.yml'
 
 concurrency:
   group: release-${{ github.ref }}
@@ -24,6 +31,8 @@ defaults:
 jobs:
 
   draft:
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: ubuntu-latest
     outputs:
       release-note: ${{ steps.release-note.outputs.release-note }}
@@ -56,12 +65,12 @@ jobs:
         run: echo "::set-output name=build-version::$(node -e "try{console.log(require('./.electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
 
 
-      - name: Waiting on All checks
-        uses: lewagon/wait-on-check-action@v0.2
-        with:
-          ref: ${{ github.ref }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          running-workflow-name: 'draft'
+      # - name: Waiting on All checks
+      #   uses: lewagon/wait-on-check-action@v0.2
+      #   with:
+      #     ref: ${{ github.ref }}
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+      #     running-workflow-name: 'draft'
 
       - name: Delete outdated drafts
         uses: hugo19941994/delete-draft-releases@v1.0.0
@@ -107,6 +116,25 @@ jobs:
         env:
           RELEASE_NOTE: ${{ needs.draft.outputs.release-note }}
         run: echo "$RELEASE_NOTE" >> ./buildResources/release-notes.md
+
+      # Download python executables
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build-python.yml
+          name: package-${{ matrix.os }}
+
+      - name: Extract artifacts
+        uses: a7ul/tar-action@v1.1.0
+        with:
+          command: x
+          cwd: .
+          files: dist.tar.gz
+
+      - name: Copy Python package
+        run: |
+          cp -r dist/client/* python
+          rm -rf dist
 
       # Compile app and upload artifacts
       - name: Compile & release Electron app
