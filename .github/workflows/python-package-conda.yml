@@ -1,4 +1,4 @@
-name: Build Python
+name: Build app
 
 on:
   workflow_dispatch:
@@ -18,29 +18,31 @@ jobs:
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         conda install numba numpy pandas matplotlib seaborn
         pip install dendropy baltic gym
         pip install build pyinstaller python-socketio aiohttp
-    - uses: actions/checkout@v3
+    - name: Checkout captain-project
+      uses: actions/checkout@v3
       with:
         repository: captain-project/captain-project
         ref: main
         path: captain-project
-    - name: Install Captain library
+    - name: Install captain-project
       run: |
         cd captain-project
         python -m build
         pip install -e .
         cd ..        
-    - name: Checkout app
+    - name: Checkout captain-app
       uses: actions/checkout@v3
     - name: Run pyinstaller
       run: |
         pyinstaller python/client.py
-    - name: Install NPM
+    - name: Setup Node
       uses: actions/setup-node@v3
-    - run: |
-        npm i
-        npm run compile
+    - name: Install Node dependencies
+      run: npm i
+    - name: Build Electron app
+      run: npm run compile
