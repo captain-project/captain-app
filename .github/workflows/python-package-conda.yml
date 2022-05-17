@@ -20,8 +20,6 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        conda create -n captain
-        conda activate captain
         conda install numba numpy pandas matplotlib seaborn
         pip install dendropy baltic gym
         pip install build pyinstaller python-socketio aiohttp
