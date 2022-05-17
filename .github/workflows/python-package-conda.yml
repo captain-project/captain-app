@@ -18,7 +18,7 @@ jobs:
       with:
         python-version: 3.9
     - if: startsWith(matrix.os, 'windows')
-      name: aeou
+      name: Install Miniconda
       uses: conda-incubator/setup-miniconda@v2.1.1
     - name: Add conda to system path
       run: |
@@ -52,8 +52,11 @@ jobs:
       run: npm i
     - name: Build Electron app
       run: npm run compile
+    - name: Compress dist folder
+      run: zip -r dist.zip dist
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
         name: package-${{ matrix.os }}
-        path: dist
+        path: dist.zip
+        retention-days: 1
