@@ -27,7 +27,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "precompile": "cross-env MODE=production npm run build",
-    "compile": "electron-builder build --config .electron-builder.config.js --dir --config.asar=false",
+    "compile": "electron-builder build --config .electron-builder.config.js --dir --config.asar=false -c.snap.publish=github",
     "jest": "jest --forceExit --no-cache",
     "pretest": "npm run build",
     "testOrig": "node tests/app.spec.js",
