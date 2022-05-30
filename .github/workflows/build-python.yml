@@ -29,7 +29,7 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        pip install –upgrade pip setuptools wheel
+        pip install –-upgrade pip setuptools wheel
         conda install numba numpy pandas matplotlib seaborn
         pip install dendropy baltic gym
         pip install build pyinstaller python-socketio aiohttp
