@@ -38,7 +38,7 @@ jobs:
       shell: bash
       run: |
         cd captain-project
-        pip install -U pip setuptools wheel
+        python -m pip install -U pip setuptools wheel
         conda env update --file environment.yml
         cd ..
   
