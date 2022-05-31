@@ -38,8 +38,7 @@ jobs:
       run: |
         cd captain-project
         conda env update --file environment.yml
-        conda activate captain
-        python -m pip install -U pip setuptools wheel       
+        python -m pip install -U pip setuptools wheel build
         cd ..
   
     - name: Install captain
