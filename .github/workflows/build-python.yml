@@ -37,8 +37,9 @@ jobs:
     - name: Install Python dependencies
       run: |
         cd captain-project
-        python -m pip install -U pip setuptools wheel
         conda env update --file environment.yml
+        conda activate captain
+        python -m pip install -U pip setuptools wheel       
         cd ..
   
     - name: Install captain
