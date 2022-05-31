@@ -35,7 +35,6 @@ jobs:
         path: captain-project
 
     - name: Install Python dependencies
-      shell: bash
       run: |
         cd captain-project
         python -m pip install -U pip setuptools wheel
@@ -43,7 +42,6 @@ jobs:
         cd ..
   
     - name: Install captain
-      shell: bash
       run: |
         cd captain-project
         python -m build
