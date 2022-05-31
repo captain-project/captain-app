@@ -3,6 +3,7 @@ node_modules
 dist
 *.local
 thumbs.db
+client.spec
 
 /build
 /python/tmp
