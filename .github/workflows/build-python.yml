@@ -27,13 +27,6 @@ jobs:
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
 
-    - name: Install Python dependencies
-      run: |
-        pip install -U pip setuptools wheel
-        conda install numba numpy pandas matplotlib seaborn
-        pip install dendropy baltic gym
-        pip install build pyinstaller python-socketio aiohttp
-
     - name: Checkout captain-project
       uses: actions/checkout@v3
       with:
@@ -41,7 +34,16 @@ jobs:
         ref: main
         path: captain-project
 
-    - name: Install captain-project
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        cd captain-project
+        pip install -U pip setuptools wheel
+        conda env update --file environment.yml
+        cd ..
+  
+    - name: Install captain
+      shell: bash
       run: |
         cd captain-project
         python -m build
