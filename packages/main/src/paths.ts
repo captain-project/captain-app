@@ -1,5 +1,9 @@
 import { app } from "electron";
 import { join, resolve } from "path";
+
+function isPackaged() {
+  return app && app.isPackaged;
+}
 class Paths {
   port = 3030;
 
@@ -20,7 +24,12 @@ class Paths {
   }
 
   get public() {
-    return join(this.appPath, "packages", "main", "public");
+    return join(
+      this.appPath,
+      "packages",
+      "main",
+      isPackaged() ? "dist" : "public"
+    );
   }
 
   get favicon() {
