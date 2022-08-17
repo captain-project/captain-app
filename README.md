@@ -1,12 +1,36 @@
 # Captain App
 
 Cross-platform desktop GUI for [Captain - Conservation Area Prioritization Through Artificial INtelligence](https://www.captain-project.net)
+
 ## Development
 
 The code is based on a [React fork](https://github.com/soulsam480/vite-electron-react-starter) of [Vite Electron Builder Boilerplate](https://github.com/cawa-93/vite-electron-builder).
 
 ### Requirements
+
 Requires npm version v7 or later.
+
+Copy `trained_models` from `captain-dev` to the `python` folder.
+
+#### Python
+
+Working directory: `captain-project/captain-project`
+
+Create conda environment and install dependencies from `environment.yml`
+
+```
+conda create --name captain python==3.9.13
+conda activate captain
+conda env update --file environment.yml
+```
+
+Install local captain-project (later from pip)
+
+```
+pip install -e .
+```
+
+Use same conda environment when starting electron.
 
 ### Running
 

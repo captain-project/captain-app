@@ -69,7 +69,7 @@ export class PythonClient {
   }
 }
 
-const pythonClient = new PythonClient(true);
+const pythonClient = new PythonClient(false);
 
 export default {
   dispose() {
