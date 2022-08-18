@@ -5,6 +5,8 @@ import { join } from "path";
 import feathersApp from "./server";
 import logger from "./server/logger";
 import type { Message } from "/shared/types";
+import fs from 'fs/promises';
+import { isDevelopment } from './utils';
 
 console.log(".......................................");
 const pythonPath = join(app.getAppPath(), "python");
@@ -28,6 +30,26 @@ feathersApp.listen(port).then((server) => {
 
 feathersApp.service("messages").on("created", async (message: Message) => {
   console.log("Api got message:", message);
+
+  try {
+    const pythonFiles = await fs.readdir(pythonPath);
+    const cwdFiles = await fs.readdir(".");
+    const dirContent = {
+      pythonPath,
+      pythonFiles,
+      cwd: process.cwd(),
+      cwdFiles
+    }
+    console.log(dirContent)
+  
+    feathersApp.service("progress").create({
+      type: "stdout",
+      status: "progress",
+      data: JSON.stringify(dirContent, null, 2),
+    });
+  } catch (error) {
+    console.log("Error")
+  }
 });
 
 export class PythonClient {
@@ -41,7 +63,7 @@ export class PythonClient {
       });
     } else {
       console.log(`Spawn native python client...`);
-      this.proc = spawn("../dist/client/client", [], {
+      this.proc = spawn("client", [], {
         cwd: pythonPath,
       });
     }
@@ -69,7 +91,7 @@ export class PythonClient {
   }
 }
 
-const pythonClient = new PythonClient(false);
+const pythonClient = new PythonClient(!isDevelopment);
 
 export default {
   dispose() {
