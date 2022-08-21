@@ -7,10 +7,11 @@ import logger from "./server/logger";
 import type { Message } from "/shared/types";
 import fs from 'fs/promises';
 import { isDevelopment } from './utils';
+import log from "electron-log";
 
-console.log(".......................................");
+log.info(".......................................");
 const pythonPath = join(app.getAppPath(), "python");
-console.log(`API created! Python path: '${pythonPath}'`);
+log.info(`API created! Python path: '${pythonPath}'`);
 
 process.on("unhandledRejection", (reason, p) => {
   logger.error("Unhandled Rejection at: Promise ", p, reason);
@@ -29,7 +30,7 @@ feathersApp.listen(port).then((server) => {
 });
 
 feathersApp.service("messages").on("created", async (message: Message) => {
-  console.log("Api got message:", message);
+  log.info("Api got message:", message);
 
   try {
     const pythonFiles = await fs.readdir(pythonPath);
@@ -40,15 +41,15 @@ feathersApp.service("messages").on("created", async (message: Message) => {
       cwd: process.cwd(),
       cwdFiles
     }
-    console.log(dirContent)
-  
-    feathersApp.service("progress").create({
-      type: "stdout",
-      status: "progress",
-      data: JSON.stringify(dirContent, null, 2),
-    });
+    // log.info(dirContent);
+
+    // feathersApp.service("progress").create({
+    //   type: "stdout",
+    //   status: "progress",
+    //   data: JSON.stringify(dirContent, null, 2),
+    // });
   } catch (error) {
-    console.log("Error")
+    log.error("Error dirs:", error);
   }
 });
 
@@ -57,19 +58,19 @@ export class PythonClient {
 
   constructor(native = false) {
     if (!native) {
-      console.log(`Spawn python client.py...`);
+      log.info(`Spawn python client.py...`);
       this.proc = spawn("python", ["client.py"], {
         cwd: pythonPath,
       });
     } else {
-      console.log(`Spawn native python client...`);
-      this.proc = spawn("client", [], {
+      log.info(`Spawn native python client...`);
+      this.proc = spawn("client/client", [], {
         cwd: pythonPath,
       });
     }
 
     this.proc.stdout.on("data", (data) => {
-      // console.log(`python stdout: ${data.toString()}`);
+      // log.info(`python stdout: ${data.toString()}`);
       feathersApp
         .service("progress")
         .create({ type: "stdout", status: "progress", data: data.toString() });
@@ -86,7 +87,7 @@ export class PythonClient {
   }
 
   kill() {
-    console.log("Killing python client...");
+    log.info("Killing python client...");
     this.proc.kill();
   }
 }

@@ -6,6 +6,7 @@ thumbs.db
 client.spec
 
 /build
+/python/client
 /python/tmp
 /python/static/*
 /python/trained_models/*
