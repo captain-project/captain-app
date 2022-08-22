@@ -9,6 +9,8 @@ import fs from 'fs/promises';
 import { isDevelopment } from './utils';
 import log from "electron-log";
 
+log.info("env:", process.env);
+
 log.info(".......................................");
 const pythonPath = join(app.getAppPath(), "python");
 log.info(`API created! Python path: '${pythonPath}'`);
@@ -64,7 +66,7 @@ export class PythonClient {
       });
     } else {
       log.info(`Spawn native python client...`);
-      this.proc = spawn("client/client", [], {
+      this.proc = spawn("client", [], {
         cwd: pythonPath,
       });
     }
