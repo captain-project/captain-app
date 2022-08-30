@@ -39,7 +39,7 @@
     "typecheck-renderer": "tsc --noEmit -p packages/renderer/tsconfig.json",
     "typecheck": "npm run typecheck-main && npm run typecheck-preload && npm run typecheck-renderer",
     "pretypecheck-renderer": "dts-cb -i packages/preload/src/**/*.ts -o packages/preload/exposedInMainWorld.d.ts",
-    "pyinstaller": "pyinstaller python/client.py"
+    "pyinstaller": "pyinstaller --onefile python/client.py"
   },
   "standard": {
     "env": [

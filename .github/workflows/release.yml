@@ -22,14 +22,11 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
-
 defaults:
   run:
-    shell: 'bash'
-
+    shell: "bash"
 
 jobs:
-
   draft:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
@@ -64,7 +61,6 @@ jobs:
         id: version
         run: echo "::set-output name=build-version::$(node -e "try{console.log(require('./.electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
 
-
       # - name: Waiting on All checks
       #   uses: lewagon/wait-on-check-action@v0.2
       #   with:
@@ -89,13 +85,13 @@ jobs:
           body: ${{ steps.release-note.outputs.release-note }}
 
   upload_artifacts:
-    needs: [ draft ]
+    needs: [draft]
 
     strategy:
       matrix:
         # os: [ windows-latest ]
-    #    To compile the application for different platforms, use:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        #    To compile the application for different platforms, use:
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -105,7 +101,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16 # Need for npm >=7.7
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -133,7 +129,7 @@ jobs:
 
       - name: Copy Python package
         run: |
-          cp -r dist/client/* python
+          cp dist/client* python/
           rm -rf dist
 
       # Compile app and upload artifacts
@@ -156,7 +152,6 @@ jobs:
           # Sometimes the build may fail due to a connection problem with Apple, GitHub, etc. servers.
           # This option will restart the build as many attempts as possible
           max_attempts: 3
-
 
           # Code Signing params
 

@@ -86,7 +86,7 @@ export class PythonClient {
         });
       } else {
         log.info(`Spawn native python client...`);
-        this.proc = spawn("client/client", [], {
+        this.proc = spawn("client", [], {
           cwd: pythonPath,
         });
       }
