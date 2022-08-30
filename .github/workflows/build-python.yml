@@ -13,58 +13,59 @@ jobs:
       max-parallel: 3
 
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: 3.9
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
 
-    - if: startsWith(matrix.os, 'windows')
-      name: Install Miniconda
-      uses: conda-incubator/setup-miniconda@v2.1.1
+      - if: startsWith(matrix.os, 'windows')
+        name: Install Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
 
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
+      - name: Add conda to system path
+        run: |
+          # $CONDA is an environment variable pointing to the root of the miniconda directory
+          echo $CONDA/bin >> $GITHUB_PATH
 
-    - name: Checkout captain-project
-      uses: actions/checkout@v3
-      with:
-        repository: captain-project/captain-project
-        ref: main
-        path: captain-project
+      - name: Checkout captain-project
+        uses: actions/checkout@v3
+        with:
+          repository: captain-project/captain-project
+          ref: main
+          path: captain-project
 
-    - name: Install Python dependencies
-      run: |
-        cd captain-project
-        python -m pip install -U pip setuptools wheel build pyinstaller
-        conda env update --file environment.yml
-        cd ..
-  
-    - name: Install captain
-      run: |
-        cd captain-project
-        python -m build
-        pip install -e .
-        cd ..
+      - name: Install Python dependencies
+        run: |
+          cd captain-project
+          python -m pip install -U pip setuptools wheel build pyinstaller
+          conda env update --name base --file environment.yml
+          conda 
+          cd ..
 
-    - name: Checkout captain-app
-      uses: actions/checkout@v3
+      - name: Install captain
+        run: |
+          cd captain-project
+          python -m build
+          pip install -e .
+          cd ..
 
-    - name: Run pyinstaller
-      run: |
-        pyinstaller python/client.py
+      - name: Checkout captain-app
+        uses: actions/checkout@v3
 
-    - name: Compress dist folder
-      uses: a7ul/tar-action@v1.1.0
-      with:
-        command: c
-        files: dist
-        outPath: dist.tar.gz
+      - name: Run pyinstaller
+        run: |
+          pyinstaller python/client.py
 
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.0.0
-      with:
-        name: package-${{ matrix.os }}
-        path: dist.tar.gz
-        retention-days: 1
+      - name: Compress dist folder
+        uses: a7ul/tar-action@v1.1.0
+        with:
+          command: c
+          files: dist
+          outPath: dist.tar.gz
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.0.0
+        with:
+          name: package-${{ matrix.os }}
+          path: dist.tar.gz
+          retention-days: 1
