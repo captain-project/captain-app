@@ -57,11 +57,16 @@ feathersApp.listen(port).then((server) => {
 feathersApp.service("messages").on("created", async (message: Message) => {
   log.info("Api got message:", message);
 
-  const dirContent = await getDebugDirs();
+  // const dirContent = await getDebugDirs();
+  // feathersApp.service("progress").create({
+  //   type: "stdout",
+  //   status: "progress",
+  //   data: JSON.stringify(dirContent, null, 2),
+  // });
   feathersApp.service("progress").create({
     type: "stdout",
     status: "progress",
-    data: JSON.stringify(dirContent, null, 2),
+    data: "Loading captain client (may take 30 seconds)... ",
   });
 });
 

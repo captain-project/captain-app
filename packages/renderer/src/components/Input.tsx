@@ -163,6 +163,7 @@ export default observer(function Input() {
         <div>or</div>
         <Button
           isDisabled={
+            store.activeResult.simulation.isLoadingClient ||
             store.activeResult.simulation.isInitiated ||
             store.activeResult.simulation.isRunning
           }
@@ -246,6 +247,10 @@ export default observer(function Input() {
         </FormControl>
 
         <Button
+          disabled={
+            store.activeResult.simulation.isLoadingClient ||
+            !store.activeResult.simulation.isInitiated
+          }
           isLoading={store.activeResult.simulation.isRunning}
           onClick={() => store.activeResult.simulation.run()}
         >

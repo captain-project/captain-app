@@ -9,11 +9,13 @@ sio = socketio.AsyncClient(logger=False, engineio_logger=False)
 async def emit(service, data):
     return await sio.emit("create", (service, data))
 
+
 @sio.event
 async def connect():
     print("Python connected!")
     initiated_systems = captain_api.get_initiated_systems()
     await emit("progress", dict(type="init", status="finished", data=initiated_systems))
+    await emit("progress", dict(type="stdout", status="progress", data="Captain client loaded!"))
 
 
 @sio.event

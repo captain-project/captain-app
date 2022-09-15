@@ -41,6 +41,7 @@ simulation	reward	protected_cells	budget_left	time_last_protect	avg_cost	extant_
 */
 export default class SimulationStore {
   // status
+  isLoadingClient = true;
   isInitiating = false;
   // isInitiated = false;
   isRunning = false;
@@ -74,6 +75,7 @@ export default class SimulationStore {
 
   constructor(private root: RootStore) {
     makeObservable(this, {
+      isLoadingClient: observable,
       isInitiating: observable,
       isInitiated: computed,
       isRunning: observable,
@@ -146,6 +148,7 @@ export default class SimulationStore {
     if (data.type === "init" && data.status === "finished") {
       // const sim_file = data.data;
       console.log("Init finished:", data);
+      this.isLoadingClient = false;
       this.initiatedSystems = data.data as string[];
       this.isInitiating = false;
     }
