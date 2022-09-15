@@ -1,5 +1,5 @@
-import { spawn } from "child_process";
-import type { ChildProcessWithoutNullStreams } from "child_process";
+import { spawn, execFile, exec } from "child_process";
+import type { ChildProcessWithoutNullStreams, ChildProcess } from "child_process";
 import { app } from "electron";
 import { join } from "path";
 import feathersApp from "./server";
@@ -67,7 +67,7 @@ feathersApp.service("messages").on("created", async (message: Message) => {
 
 export class PythonClient {
   app: Application;
-  proc?: ChildProcessWithoutNullStreams;
+  proc?: ChildProcessWithoutNullStreams | ChildProcess;
 
   constructor(app: Application) {
     this.app = app;
@@ -78,17 +78,36 @@ export class PythonClient {
     const dirContent = await getDebugDirs();
     log.info(`Dir content: \n${JSON.stringify(dirContent, null, 2)}`);
 
+    const useExec = false;
+
     try {
       if (!native) {
         log.info(`Spawn python client.py...`);
-        this.proc = spawn("python", ["client.py"], {
-          cwd: pythonPath,
-        });
+        if (useExec) {
+          this.proc = exec(`python ${join(pythonPath, "client.py")}`, { cwd: pythonPath }, (err, stdout, stderr) => {
+            if (err) {
+              log.error("Proc error:", err);
+            }
+            log.info("stdout:", stdout, "stderr:", stderr);
+          });
+        } else {
+          this.proc = spawn("python", [join(pythonPath, "client.py")], {
+            cwd: pythonPath,
+          });
+        }
+        log.info(`Spawning done!`);
       } else {
         log.info(`Spawn native python client...`);
-        this.proc = spawn("client", [], {
-          cwd: pythonPath,
-        });
+        if (useExec) {
+          this.proc = execFile(join(pythonPath, "client"), { cwd: pythonPath }, (err, stdout, stderr) => {
+            if (err) {
+              log.error("Python client error:", err);
+            }
+            log.info("stdout:", stdout, "stderr:", stderr);
+          });
+        } else {
+          this.proc = spawn(join(pythonPath, "client"), { cwd: pythonPath });
+        }
       }
     }
     catch (err) {
@@ -99,7 +118,7 @@ export class PythonClient {
       return;
     }
 
-    this.proc.stdout.on("data", (data) => {
+    this.proc.stdout?.on("data", (data) => {
       // log.info(`python stdout: ${data.toString()}`);
       this.app
         .service("progress")
@@ -107,13 +126,26 @@ export class PythonClient {
     });
 
     const stderrChunks: any = [];
-    this.proc.stderr.on("data", (data) => {
+    this.proc.stderr?.on("data", (data) => {
       stderrChunks.push(data);
       log.error(`python error: ${Buffer.concat([data]).toString()}`);
       // this.app
       //   .service("progress")
       //   .create({ type: "python-stderr", data: data.toString() });
     });
+
+    this.proc?.on('error', (err: Error) => {
+      log.error(err);
+    })
+
+    // TODO: string -> NodeJS.Signals, but git hook error even if '"types": ["node"]' in tsconfig
+    this.proc?.on('exit', (code: number | null, signal: string | null) => {
+      log.info(`Exited with code ${code} and signal ${signal}`);
+    })
+
+    this.proc?.on('close', (code: number | null, signal: string | null) => {
+      log.info(`Closed with code ${code} and signal ${signal}`);
+    })
   }
 
   kill() {

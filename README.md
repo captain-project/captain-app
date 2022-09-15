@@ -39,3 +39,8 @@ Use same conda environment when starting electron.
 1. `npm run lint` lint your code.
 1. `npm run typecheck` Run typescript check.
 1. `npm run test` Run app test.
+
+### Logs
+
+Captain uses `electron-log` which logs info and errors to a local log file.
+On macOS in `~/Library/Logs/captain-app/main.log`.
