@@ -134,8 +134,8 @@ export default class ResultStore {
 
     try {
       const figure = this.figures[step].figures[plot];
-      figure.url = svgUrl;
-      figure.thumbnailUrl = thumbnailUrl;
+      figure.url = `http:${encodeURI(svgUrl)}`;
+      figure.thumbnailUrl = `http:${encodeURI(thumbnailUrl)}`;
       figure.isLoaded = true;
       figure.title = title;
     } catch (e) {
